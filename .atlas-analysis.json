@@ -1,0 +1,96 @@
+{
+  "projectType": "saas",
+  "projectName": "Service Orders Management System",
+  "projectDescription": "A comprehensive SaaS application for managing service orders, companies, contacts, and equipment tracking with authentication and real-time updates.",
+  "theme": "almond",
+  "primaryColor": "#64748c",
+  "lightColor": "#04db83",
+  "darkColor": "#66e3b1",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "installation"
+            ]
+          },
+          {
+            "group": "Core Features",
+            "pages": [
+              "features/service-orders",
+              "features/companies-contacts",
+              "features/equipment-management",
+              "features/authentication"
+            ]
+          },
+          {
+            "group": "Development",
+            "pages": [
+              "development/project-structure",
+              "development/state-management",
+              "development/composables",
+              "development/api-integration"
+            ]
+          },
+          {
+            "group": "Deployment",
+            "pages": [
+              "deployment/building",
+              "deployment/environment-config"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Composables",
+            "pages": [
+              "api/use-api",
+              "api/use-service-orders"
+            ]
+          },
+          {
+            "group": "Stores",
+            "pages": [
+              "api/auth-store"
+            ]
+          },
+          {
+            "group": "Types",
+            "pages": [
+              "api/service-order-types"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "User authentication and authorization",
+    "Service order creation and management",
+    "Company and contact management",
+    "Equipment tracking with serial numbers",
+    "Solution tracking and status updates",
+    "Real-time API integration",
+    "Responsive UI with Bootstrap",
+    "State management with Pinia"
+  ],
+  "publicApiSurface": [
+    "useApi() - Axios instance with authentication",
+    "useServiceOrders() - Service order state management",
+    "useAuthStore() - Authentication state store",
+    "ServiceOrder interface",
+    "Company interface",
+    "Contact interface",
+    "POST /login - User authentication",
+    "GET /service-orders - Fetch service orders",
+    "Service order CRUD operations"
+  ]
+}
