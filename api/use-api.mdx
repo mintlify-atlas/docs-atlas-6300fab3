@@ -1,0 +1,127 @@
+---
+title: "useApi"
+description: "Axios instance with authentication"
+---
+
+The `useApi` composable provides a pre-configured Axios instance with automatic authentication header injection for making API requests.
+
+## Source Code
+
+```typescript
+import axios from 'axios'
+
+export const useApi = () => {
+  const config = useRuntimeConfig()
+  const token = import.meta.client ? localStorage.getItem('access_token') : null
+  const { public: { apiBaseUrl } } = useRuntimeConfig()
+
+  const api = axios.create({
+    baseURL: apiBaseUrl as string,
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {})
+    }
+  })
+
+  return api
+}
+```
+
+## Return Value
+
+Returns an Axios instance configured with:
+
+<ParamField path="baseURL" type="string">
+  The API base URL from runtime configuration
+</ParamField>
+
+<ParamField path="headers" type="object">
+  HTTP headers automatically included in all requests:
+  
+  <Expandable title="Headers">
+    <ResponseField name="Accept" type="string" default="application/json">
+      Specifies that the client expects JSON responses
+    </ResponseField>
+    
+    <ResponseField name="Content-Type" type="string" default="application/json">
+      Indicates that request bodies are in JSON format
+    </ResponseField>
+    
+    <ResponseField name="Authorization" type="string" required={false}>
+      Bearer token for authentication (only included if token exists in localStorage)
+    </ResponseField>
+  </Expandable>
+</ParamField>
+
+## Usage Examples
+
+### Login Request
+
+From `pages/index.vue`:
+
+```vue
+<script setup>
+const api = useApi()
+const form = ref({
+  email: '',
+  password: ''
+})
+
+const checkLogin = async () => {
+  await api.post('/login', form.value)
+    .then((response) => {
+      localStorage.setItem('access_token', response.data.access_token)
+      window.location.href = '/serviceorders'
+    })
+    .catch((error) => {
+      if (error.response.data.message) {
+        alert(`Validacion Incorrecta: ${error.response.data.message}`)
+      }
+    })
+}
+</script>
+```
+
+### Fetching Service Orders
+
+From `pages/serviceorders/index.vue`:
+
+```vue
+<script setup lang="ts">
+import type { ServiceOrder } from '~/types/ServiceOrder'
+
+const api = useApi()
+const orders = ref<ApiResponse<ServiceOrder[]>>([])
+
+interface ApiResponse<T> {
+  data: T;
+}
+
+const getServiceOrders = async (): Promise<ApiResponse<ServiceOrder[]>> => {
+  const response = await api.get('/service-orders')
+  return response
+}
+
+onMounted(async () => {
+  orders.value = await getServiceOrders()
+})
+</script>
+```
+
+## Features
+
+- **Automatic Authentication**: Automatically includes Bearer token from localStorage if available
+- **Client-Side Only**: Token retrieval only occurs on the client side (`import.meta.client`)
+- **Centralized Configuration**: Base URL is managed through runtime configuration
+- **Type Safety**: Returns a fully typed Axios instance
+
+## Notes
+
+<Note>
+  The token is retrieved from `localStorage.getItem('access_token')` only on the client side to prevent SSR-related errors.
+</Note>
+
+<Warning>
+  Make sure to set the access token in localStorage after successful authentication for subsequent requests to be authenticated.
+</Warning>

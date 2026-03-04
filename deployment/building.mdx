@@ -1,0 +1,215 @@
+---
+title: 'Building for Production'
+description: 'Learn how to build and deploy the Service Orders Management System for production environments'
+---
+
+## Overview
+
+The Service Orders Management System uses Nuxt 3, which provides flexible build options for different deployment scenarios. You can create either a server-side rendered (SSR) application or a statically generated site.
+
+## Build Commands
+
+The application includes several build-related scripts defined in `package.json`:
+
+<CodeGroup>
+
+```bash npm
+npm run build
+```
+
+```bash yarn
+yarn build
+```
+
+```bash pnpm
+pnpm build
+```
+
+</CodeGroup>
+
+### Available Build Scripts
+
+<Steps>
+
+<Step title="SSR Build (Default)">
+  The `build` command creates a production-ready SSR application:
+  
+  ```json package.json
+  {
+    "scripts": {
+      "build": "nuxt build"
+    }
+  }
+  ```
+  
+  This generates a `.output` directory containing:
+  - Server-side code for handling requests
+  - Client-side assets (JavaScript, CSS)
+  - Optimized and tree-shaken bundles
+</Step>
+
+<Step title="Static Generation">
+  For static hosting, use the `generate` command:
+  
+  ```json package.json
+  {
+    "scripts": {
+      "generate": "nuxt generate"
+    }
+  }
+  ```
+  
+  <CodeGroup>
+  
+  ```bash npm
+  npm run generate
+  ```
+  
+  ```bash yarn
+  yarn generate
+  ```
+  
+  ```bash pnpm
+  pnpm generate
+  ```
+  
+  </CodeGroup>
+  
+  This pre-renders all routes and generates a fully static site in the `.output/public` directory.
+</Step>
+
+<Step title="Preview Production Build">
+  Test your production build locally before deployment:
+  
+  ```json package.json
+  {
+    "scripts": {
+      "preview": "nuxt preview"
+    }
+  }
+  ```
+  
+  <CodeGroup>
+  
+  ```bash npm
+  npm run preview
+  ```
+  
+  ```bash yarn
+  yarn preview
+  ```
+  
+  ```bash pnpm
+  pnpm preview
+  ```
+  
+  </CodeGroup>
+  
+  <Note>
+    The preview server runs your built application, simulating a production environment. This is useful for catching issues before deployment.
+  </Note>
+</Step>
+
+</Steps>
+
+## SSR vs Static Generation
+
+### When to Use SSR Build
+
+Choose `nuxt build` for:
+- Dynamic content that changes frequently
+- User-specific content and authentication
+- Real-time data from APIs
+- Server-side logic and middleware
+
+**Deployment targets**: Node.js servers, serverless platforms (Vercel, Netlify Functions), Docker containers
+
+### When to Use Static Generation
+
+Choose `nuxt generate` for:
+- Content that doesn't change often
+- Better performance (no server processing)
+- Lower hosting costs
+- CDN distribution
+
+**Deployment targets**: Static hosting (Netlify, Vercel, GitHub Pages, AWS S3)
+
+<Warning>
+  Static generation pre-renders pages at build time. API calls made during generation will use build-time data. Ensure your application can handle this appropriately.
+</Warning>
+
+## Build Output
+
+After running either build command, you'll find the output in the `.output` directory:
+
+```
+.output/
+├── public/          # Static assets and pre-rendered pages
+├── server/          # Server-side code (SSR builds only)
+└── nitro.json       # Build metadata
+```
+
+## Optimization Tips
+
+<Steps>
+
+<Step title="Enable Production Mode">
+  Ensure `NODE_ENV=production` is set during build:
+  
+  ```bash
+  NODE_ENV=production npm run build
+  ```
+  
+  This enables:
+  - Minification of JavaScript and CSS
+  - Tree-shaking to remove unused code
+  - Production optimizations in Vue and Nuxt
+</Step>
+
+<Step title="Analyze Bundle Size">
+  Add the `--analyze` flag to inspect bundle composition:
+  
+  ```bash
+  npm run build -- --analyze
+  ```
+  
+  This opens a visual report showing which modules contribute to bundle size.
+</Step>
+
+<Step title="Optimize Images">
+  The application uses `@nuxt/image` for automatic image optimization. Ensure images are properly configured to leverage:
+  - Lazy loading
+  - Responsive sizing
+  - Modern format conversion (WebP, AVIF)
+</Step>
+
+<Step title="Configure Vite Optimizations">
+  The build uses Vite under the hood. Custom optimizations are defined in `nuxt.config.ts`:
+  
+  ```typescript nuxt.config.ts
+  vite: {
+    define: {
+      "process.env.DEBUG": false,
+    },
+  }
+  ```
+  
+  This removes debug code from production builds.
+</Step>
+
+</Steps>
+
+## Build Process
+
+1. **Preparation**: Run `nuxt prepare` (automatically runs after `npm install` via `postinstall` script)
+2. **TypeScript Check**: Type checking is performed during build
+3. **Module Processing**: All Nuxt modules are initialized and configured
+4. **Vite Build**: Client and server code are bundled
+5. **Optimization**: Code splitting, minification, and tree-shaking
+6. **Output Generation**: Final artifacts written to `.output`
+
+## Next Steps
+
+<Card title="Environment Configuration" icon="gear" href="/deployment/environment-config">
+  Configure runtime settings and API endpoints for different environments
+</Card>

@@ -1,0 +1,170 @@
+---
+title: "useServiceOrders"
+description: "Service order state management composable"
+---
+
+The `useServiceOrders` composable manages service order state and provides utilities for handling service order data throughout the application.
+
+## Source Code
+
+```typescript
+import { ref } from 'vue'
+import type { ServiceOrder } from '~/types/ServiceOrder'
+
+export const useServiceOrders = () => {
+  const serviceOrders = ref<ServiceOrder[]>([
+    {
+      id: 1,
+      number: 123456,
+      type: "garantía",
+      part_number: "ab123",
+      serial_number: "6303934",
+      description: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Qui expedita temporibus ipsum, incidunt hic doloremque a voluptas magnam perferendis architecto harum, obcaecati adipisci ea recusandae. Veniam eveniet a quidem sequi?",
+      solution: "lorem ipsum",
+      company: { name: "Tech Solutions S.A.S", headquarters: "Bogota" },
+      contacts: { name: "Angie", last_name: "Gonzales", gender: "Femenino", active: true, identification: 1101532654, charge: "admin", birthday: "09/12/2005" },
+      mails: { mail: "angie123@gmail.com" },
+      phones: { phone: 31356245120 },
+      addresses: { address: "Crr 5 #23-67" },
+      cities: { city: "Bogota" },
+      equipment_types: { name: "Lenovo" },
+      delivery_conditions: { description: "descripcion" }
+    },
+    // ... more mock data
+  ])
+
+  const selectedOrder = ref<ServiceOrder>(getEmptyOrder())
+
+  function openModal(isNew: boolean, orderObject: any = null) {
+    selectedOrder.value = isNew ? getEmptyOrder() : orderObject
+  }
+
+  function getEmptyOrder(): ServiceOrder {
+    return {
+      id: 0,
+      number: 0,
+      type: '',
+      part_number: '',
+      serial_number: '',
+      description: '',
+      solution: '',
+      company: { name: '', headquarters: '' },
+      contacts: { name: '', last_name: '', gender: '', active: true, identification: 0, charge: '', birthday: '' },
+      mails: { mail: '' },
+      phones: { phone: 0 },
+      addresses: { address: '' },
+      cities: { city: '' },
+      equipment_types: { name: '' },
+      delivery_conditions: { description: '' }
+    }
+  }
+
+  return {
+    serviceOrders,
+    selectedOrder,
+    openModal
+  }
+}
+```
+
+## Return Values
+
+<ResponseField name="serviceOrders" type="Ref<ServiceOrder[]>">
+  Reactive reference to an array of service orders. Initially populated with mock data.
+</ResponseField>
+
+<ResponseField name="selectedOrder" type="Ref<ServiceOrder>">
+  Reactive reference to the currently selected service order. Defaults to an empty order object.
+</ResponseField>
+
+<ResponseField name="openModal" type="function">
+  Function to set the selected order for modal operations.
+  
+  <Expandable title="Parameters">
+    <ParamField path="isNew" type="boolean" required>
+      Whether to create a new order (true) or edit an existing one (false)
+    </ParamField>
+    
+    <ParamField path="orderObject" type="ServiceOrder | null" default="null">
+      The order object to edit. Ignored if `isNew` is true.
+    </ParamField>
+  </Expandable>
+</ResponseField>
+
+## Helper Functions
+
+### getEmptyOrder()
+
+Returns a new `ServiceOrder` object with all fields initialized to empty/default values.
+
+```typescript
+function getEmptyOrder(): ServiceOrder
+```
+
+**Returns**: A `ServiceOrder` object with:
+- Numeric fields set to `0`
+- String fields set to `''`
+- Boolean fields set to `true`
+- Nested objects initialized with empty values
+
+## Usage Example
+
+From `pages/serviceorders/index.vue`:
+
+<CodeGroup>
+
+```vue Setup
+<script setup lang="ts">
+import { ref } from 'vue'
+import type { ServiceOrder } from '~/types/ServiceOrder'
+import { useServiceOrders } from '@/composables/useServiceOrders'
+
+const { serviceOrders, selectedOrder, openModal } = useServiceOrders()
+
+const flags = ref({
+  showServiceOrderModal: false,
+  showOrderDetailModal: false,
+  showSolutionModal: false
+})
+</script>
+```
+
+```vue Edit Order
+function editOrder(order: ServiceOrder) {
+  selectedOrder.value = { ...order }
+  flags.value.showServiceOrderModal = true
+}
+```
+
+```vue View Details
+function OrderDetails(order: ServiceOrder) {
+  selectedOrder.value = { ...order }
+  flags.value.showOrderDetailModal = true
+}
+```
+
+```vue Solution Modal
+function SolutionModal(order: ServiceOrder) {
+  selectedOrder.value = order
+  flags.value.showSolutionModal = true
+}
+```
+
+</CodeGroup>
+
+## State Management Pattern
+
+The composable follows Vue 3's Composition API pattern:
+
+1. **Reactive State**: Uses `ref()` to create reactive references
+2. **Shared State**: Multiple components can access the same state by calling `useServiceOrders()`
+3. **Encapsulation**: Internal logic is encapsulated within the composable
+4. **Type Safety**: Full TypeScript support with the `ServiceOrder` interface
+
+<Note>
+  This composable currently uses mock data. In production, you would replace the initial `serviceOrders` value with data fetched from the API using `useApi()`.
+</Note>
+
+<Tip>
+  The `openModal` function provides a convenient way to switch between creating new orders and editing existing ones.
+</Tip>

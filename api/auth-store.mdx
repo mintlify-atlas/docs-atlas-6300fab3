@@ -1,0 +1,189 @@
+---
+title: "useAuthStore"
+description: "Pinia store for authentication state"
+---
+
+The `useAuthStore` is a Pinia store that manages user authentication state, including user data, access tokens, and authentication lifecycle methods.
+
+## Source Code
+
+```typescript
+import { defineStore } from 'pinia'
+
+export const useAuthStore = defineStore('auth', {
+    state: () => ({
+        user: null,
+        token: null as string | null
+    }),
+
+    actions: {
+        setUser(userData: any, token: string) {
+            this.user = userData
+            this.token = token
+            localStorage.setItem('access_token', token)
+        },
+        logout() {
+            this.user = null
+            this.token = null
+            localStorage.removeItem('access_token')
+        },
+        initializeAuth() {
+            const storedToken = localStorage.getItem('access_token')
+            if (storedToken) {
+                this.token = storedToken
+            }
+        }
+    }
+})
+```
+
+## State Properties
+
+<ResponseField name="user" type="any | null" default="null">
+  The authenticated user object. Contains user data returned from the authentication API.
+</ResponseField>
+
+<ResponseField name="token" type="string | null" default="null">
+  The JWT access token used for authenticating API requests.
+</ResponseField>
+
+## Actions
+
+### setUser()
+
+Sets the authenticated user and stores the access token.
+
+```typescript
+setUser(userData: any, token: string): void
+```
+
+<ParamField path="userData" type="any" required>
+  The user data object returned from the authentication API
+</ParamField>
+
+<ParamField path="token" type="string" required>
+  The JWT access token
+</ParamField>
+
+**Side Effects**:
+- Updates the `user` state
+- Updates the `token` state
+- Persists the token to `localStorage` with key `'access_token'`
+
+### logout()
+
+Clears authentication state and removes the stored token.
+
+```typescript
+logout(): void
+```
+
+**Side Effects**:
+- Sets `user` to `null`
+- Sets `token` to `null`
+- Removes `'access_token'` from `localStorage`
+
+### initializeAuth()
+
+Restores authentication state from localStorage on application startup.
+
+```typescript
+initializeAuth(): void
+```
+
+**Side Effects**:
+- Reads `'access_token'` from `localStorage`
+- Updates the `token` state if a token is found
+
+<Note>
+  This method only restores the token, not the user data. You may need to fetch user data separately after initialization.
+</Note>
+
+## Usage Example
+
+From `pages/index.vue`:
+
+<CodeGroup>
+
+```vue Import Store
+<script setup>
+import { useAuthStore } from '~/stores/auth'
+
+const authStore = useAuthStore()
+</script>
+```
+
+```vue Login Flow
+const api = useApi()
+const form = ref({
+  email: '',
+  password: ''
+})
+
+const checkLogin = async () => {
+  await api.post('/login', form.value)
+    .then((response) => {
+      // Store authentication data
+      localStorage.setItem('access_token', response.data.access_token)
+      window.location.href = '/serviceorders'
+    })
+    .catch((error) => {
+      alert(`Validacion Incorrecta: ${error.response.data.message}`)
+    })
+}
+```
+
+```vue Initialize on App Start
+import { useAuthStore } from '~/stores/auth'
+
+const authStore = useAuthStore()
+
+// Restore auth state from localStorage
+authStore.initializeAuth()
+```
+
+```vue Logout
+const authStore = useAuthStore()
+
+const handleLogout = () => {
+  authStore.logout()
+  // Redirect to login page
+  window.location.href = '/'
+}
+```
+
+</CodeGroup>
+
+## Integration with useApi
+
+The auth store works seamlessly with the `useApi` composable:
+
+```typescript
+// useApi reads the token from localStorage
+const token = import.meta.client ? localStorage.getItem('access_token') : null
+
+const api = axios.create({
+  baseURL: apiBaseUrl as string,
+  headers: {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {})
+  }
+})
+```
+
+When you call `setUser()`, the token is persisted to localStorage, which `useApi` automatically picks up for subsequent requests.
+
+## Best Practices
+
+<Tip>
+  Call `initializeAuth()` in your app's main entry point or layout to restore authentication state when the page reloads.
+</Tip>
+
+<Warning>
+  The current implementation stores user data as `any` type. Consider defining a proper `User` interface for better type safety.
+</Warning>
+
+<Note>
+  Tokens are stored in localStorage, which persists across browser sessions. Consider using sessionStorage for more sensitive applications.
+</Note>

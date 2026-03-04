@@ -1,0 +1,112 @@
+---
+title: Introduction
+description: 'Welcome to the Service Orders Management System documentation'
+---
+
+## What is Service Orders Management System?
+
+The Service Orders Management System is a comprehensive SaaS application designed to streamline the management of service orders, companies, contacts, and equipment tracking. Built with modern web technologies, it provides a robust platform for managing technical service operations with real-time updates and intuitive workflows.
+
+## Key Features
+
+The system offers a comprehensive set of features for managing service operations:
+
+<CardGroup cols={2}>
+  <Card title="Service Order Management" icon="clipboard-list" href="/features/service-orders">
+    Create, edit, and track service orders with detailed equipment information and solutions
+  </Card>
+  
+  <Card title="Authentication & Security" icon="lock" href="/features/authentication">
+    Secure user authentication with token-based authorization
+  </Card>
+  
+  <Card title="Company & Contact Management" icon="building" href="/features/companies-contacts">
+    Manage companies, contacts, and their associated information
+  </Card>
+  
+  <Card title="Equipment Tracking" icon="desktop" href="/features/equipment-management">
+    Track equipment with serial numbers, part numbers, and service history
+  </Card>
+</CardGroup>
+
+### Core Capabilities
+
+- **User authentication and authorization** - Secure login with JWT token management
+- **Service order creation and management** - Complete CRUD operations for service orders
+- **Company and contact management** - Organize clients and their contact information
+- **Equipment tracking with serial numbers** - Track devices with unique identifiers
+- **Solution tracking and status updates** - Monitor service progress and resolutions
+- **Real-time API integration** - Seamless backend communication with Axios
+- **Responsive UI with Bootstrap** - Mobile-friendly interface design
+- **State management with Pinia** - Efficient client-side state handling
+
+## Technology Stack
+
+The Service Orders Management System is built on a modern, production-ready technology stack:
+
+<CardGroup cols={2}>
+  <Card title="Nuxt 3" icon="nuxt">
+    Vue.js framework for server-side rendering and optimal performance
+  </Card>
+  
+  <Card title="Vue 3" icon="vuejs">
+    Progressive JavaScript framework with Composition API
+  </Card>
+  
+  <Card title="Pinia" icon="store">
+    Modern state management for Vue applications
+  </Card>
+  
+  <Card title="Bootstrap 5" icon="bootstrap">
+    Responsive UI components and utilities
+  </Card>
+</CardGroup>
+
+### Key Dependencies
+
+- **Nuxt 3** (v3.16.1) - The Intuitive Vue Framework
+- **Vue 3** (v3.5.13) - The Progressive JavaScript Framework
+- **Pinia** (v3.0.2) - State management library
+- **Axios** (v1.9.0) - Promise-based HTTP client
+- **Bootstrap** (v5.3.3) - CSS framework for responsive design
+- **@nuxt/ui** (v3.0.2) - UI components for Nuxt
+- **@nuxt/icon** - Icon support for Vue components
+- **@nuxt/image** - Image optimization
+
+<Note>
+The system uses the Composition API pattern for modern Vue.js development, providing better TypeScript support and code organization.
+</Note>
+
+## Architecture Overview
+
+The application follows a modular architecture:
+
+- **Pages** - Vue components representing different routes (login, service orders, profiles)
+- **Composables** - Reusable composition functions for API calls and business logic
+- **Stores** - Pinia stores for global state management (authentication, user data)
+- **Components** - Reusable UI components for forms, modals, and displays
+- **Types** - TypeScript interfaces for type safety
+
+## Get Started
+
+<CardGroup cols={2}>
+  <Card title="Quickstart Guide" icon="rocket" href="/quickstart">
+    Get up and running in minutes with our step-by-step guide
+  </Card>
+  
+  <Card title="Installation" icon="download" href="/installation">
+    Detailed installation instructions and prerequisites
+  </Card>
+  
+  <Card title="Project Structure" icon="folder-tree" href="/development/project-structure">
+    Learn about the codebase organization
+  </Card>
+  
+  <Card title="API Integration" icon="plug" href="/development/api-integration">
+    Understand how to work with the backend API
+  </Card>
+</CardGroup>
+
+## Need Help?
+
+Explore the documentation to learn more about specific features, development workflows, and deployment strategies. Each section includes practical examples from the actual codebase.

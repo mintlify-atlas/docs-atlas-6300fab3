@@ -1,0 +1,325 @@
+---
+title: 'Environment Configuration'
+description: 'Configure runtime settings, API endpoints, and environment variables for the Service Orders Management System'
+---
+
+## Overview
+
+The Service Orders Management System uses Nuxt 3's runtime configuration system to manage environment-specific settings. This allows you to configure different values for development, staging, and production environments without modifying code.
+
+## Runtime Configuration
+
+Runtime configuration is defined in `nuxt.config.ts` and can be overridden using environment variables:
+
+```typescript nuxt.config.ts
+runtimeConfig: {
+  public: {
+    apiBaseUrl: 'http://localhost:8000/api/'
+  }
+}
+```
+
+### Public vs Private Runtime Config
+
+<CardGroup cols={2}>
+  <Card title="Public Config" icon="globe">
+    Exposed to both server and client. Accessible in browser JavaScript.
+  </Card>
+  <Card title="Private Config" icon="lock">
+    Only available on the server. Used for API keys and secrets.
+  </Card>
+</CardGroup>
+
+<Warning>
+  Never put sensitive information (API keys, secrets, passwords) in `public` runtime config. These values are exposed to the client and visible in the browser.
+</Warning>
+
+## API Base URL Configuration
+
+The `apiBaseUrl` setting defines the backend API endpoint:
+
+```typescript nuxt.config.ts
+runtimeConfig: {
+  public: {
+    apiBaseUrl: 'http://localhost:8000/api/'
+  }
+}
+```
+
+### Accessing Runtime Config
+
+Use the `useRuntimeConfig()` composable to access configuration values:
+
+```typescript Example Component
+<script setup>
+const config = useRuntimeConfig()
+const apiUrl = config.public.apiBaseUrl
+
+// Make API call
+const { data } = await useFetch(`${apiUrl}service-orders`)
+</script>
+```
+
+```typescript Composable or Plugin
+export default defineNuxtPlugin(() => {
+  const config = useRuntimeConfig()
+  
+  // Configure axios with base URL
+  const api = axios.create({
+    baseURL: config.public.apiBaseUrl
+  })
+  
+  return {
+    provide: {
+      api
+    }
+  }
+})
+```
+
+## Environment Variables
+
+Override runtime configuration using environment variables. Nuxt automatically maps environment variables to runtime config.
+
+### Naming Convention
+
+For public runtime config:
+- Config key: `runtimeConfig.public.apiBaseUrl`
+- Environment variable: `NUXT_PUBLIC_API_BASE_URL`
+
+The pattern is: `NUXT_PUBLIC_` + uppercase key with underscores
+
+<Note>
+  Private runtime config uses `NUXT_` prefix without `PUBLIC_`.
+</Note>
+
+## Environment-Specific Configuration
+
+<Steps>
+
+<Step title="Development Environment">
+  For local development, create a `.env` file in the project root:
+  
+  ```bash .env
+  # Development API endpoint
+  NUXT_PUBLIC_API_BASE_URL=http://localhost:8000/api/
+  ```
+  
+  This matches the default configuration in `nuxt.config.ts`.
+</Step>
+
+<Step title="Staging Environment">
+  Create a `.env.staging` file or set environment variables in your CI/CD:
+  
+  ```bash .env.staging
+  # Staging API endpoint
+  NUXT_PUBLIC_API_BASE_URL=https://api-staging.example.com/api/
+  ```
+  
+  Load staging config when building:
+  
+  ```bash
+  cp .env.staging .env
+  npm run build
+  ```
+</Step>
+
+<Step title="Production Environment">
+  Set environment variables in your hosting platform:
+  
+  ```bash Production
+  NUXT_PUBLIC_API_BASE_URL=https://api.example.com/api/
+  ```
+  
+  <CodeGroup>
+  
+  ```bash Vercel
+  vercel env add NUXT_PUBLIC_API_BASE_URL production
+  # Enter value: https://api.example.com/api/
+  ```
+  
+  ```bash Netlify
+  # Set in Netlify dashboard under Site settings > Environment variables
+  # Or use netlify.toml:
+  [context.production.environment]
+    NUXT_PUBLIC_API_BASE_URL = "https://api.example.com/api/"
+  ```
+  
+  ```bash Docker
+  docker run -e NUXT_PUBLIC_API_BASE_URL=https://api.example.com/api/ your-image
+  ```
+  
+  </CodeGroup>
+</Step>
+
+</Steps>
+
+## Vite Environment Variables
+
+The application also uses Vite's `define` option for compile-time constants:
+
+```typescript nuxt.config.ts
+vite: {
+  define: {
+    "process.env.DEBUG": false,
+  },
+}
+```
+
+### What This Does
+
+- Replaces all instances of `process.env.DEBUG` with `false` at build time
+- Removes debug code through dead code elimination
+- Reduces bundle size in production
+
+### Environment-Specific Debug Settings
+
+You can conditionally set debug mode based on environment:
+
+```typescript nuxt.config.ts
+export default defineNuxtConfig({
+  vite: {
+    define: {
+      "process.env.DEBUG": process.env.NODE_ENV !== 'production',
+    },
+  },
+})
+```
+
+<Note>
+  Vite's `define` performs compile-time replacement, so these values cannot be changed at runtime. Use runtime config for values that need to change after build.
+</Note>
+
+## Complete Configuration Example
+
+Here's a comprehensive example with both public and private config:
+
+```typescript nuxt.config.ts
+export default defineNuxtConfig({
+  runtimeConfig: {
+    // Private config (server-only)
+    apiSecret: '', // Override with NUXT_API_SECRET
+    databaseUrl: '', // Override with NUXT_DATABASE_URL
+    
+    // Public config (client and server)
+    public: {
+      apiBaseUrl: 'http://localhost:8000/api/', // Override with NUXT_PUBLIC_API_BASE_URL
+      appVersion: '1.0.0', // Override with NUXT_PUBLIC_APP_VERSION
+    }
+  },
+  
+  vite: {
+    define: {
+      "process.env.DEBUG": false,
+    },
+  },
+})
+```
+
+Corresponding `.env` file:
+
+```bash .env
+# Private (server-only)
+NUXT_API_SECRET=your-secret-key
+NUXT_DATABASE_URL=postgresql://localhost/dbname
+
+# Public (client-exposed)
+NUXT_PUBLIC_API_BASE_URL=http://localhost:8000/api/
+NUXT_PUBLIC_APP_VERSION=1.0.0
+```
+
+## Best Practices
+
+<Steps>
+
+<Step title="Use Environment Variables for Deployment">
+  Never hardcode environment-specific values. Use environment variables to configure:
+  - API endpoints
+  - Feature flags
+  - Analytics IDs
+  - CDN URLs
+</Step>
+
+<Step title="Provide Sensible Defaults">
+  Set default values in `nuxt.config.ts` that work for local development:
+  
+  ```typescript
+  runtimeConfig: {
+    public: {
+      apiBaseUrl: process.env.NUXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api/'
+    }
+  }
+  ```
+</Step>
+
+<Step title="Document Required Variables">
+  Create a `.env.example` file listing all required environment variables:
+  
+  ```bash .env.example
+  # API Configuration
+  NUXT_PUBLIC_API_BASE_URL=http://localhost:8000/api/
+  
+  # Optional: Debug mode
+  # NODE_ENV=development
+  ```
+</Step>
+
+<Step title="Validate Configuration">
+  Add runtime validation to ensure required config is present:
+  
+  ```typescript server/middleware/validate-config.ts
+  export default defineEventHandler((event) => {
+    const config = useRuntimeConfig()
+    
+    if (!config.public.apiBaseUrl) {
+      throw new Error('API_BASE_URL is required')
+    }
+  })
+  ```
+</Step>
+
+</Steps>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Configuration not updating after change">
+    Runtime config is loaded at build time for static generation or at server start for SSR. After changing environment variables:
+    
+    1. Restart the dev server: `npm run dev`
+    2. Rebuild for production: `npm run build`
+    3. Clear `.nuxt` directory if issues persist: `rm -rf .nuxt && npm run dev`
+  </Accordion>
+  
+  <Accordion title="Environment variables not being recognized">
+    Ensure you're using the correct naming convention:
+    
+    - Public config: `NUXT_PUBLIC_` prefix
+    - Private config: `NUXT_` prefix
+    - Use underscores for nested keys: `NUXT_PUBLIC_API_BASE_URL`
+    
+    Verify the variable is set:
+    ```bash
+    echo $NUXT_PUBLIC_API_BASE_URL
+    ```
+  </Accordion>
+  
+  <Accordion title="Sensitive data exposed in client bundle">
+    Check that sensitive values are in private config (not under `public`):
+    
+    ```typescript
+    runtimeConfig: {
+      apiSecret: '', // ✓ Private (server-only)
+      public: {
+        apiSecret: '' // ✗ WRONG! Exposed to client
+      }
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<Card title="Building for Production" icon="hammer" href="/deployment/building">
+  Learn how to build optimized production bundles for deployment
+</Card>

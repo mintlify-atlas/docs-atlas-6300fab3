@@ -1,0 +1,463 @@
+---
+title: 'Authentication & Authorization'
+description: 'User authentication system with JWT tokens, secure login, and protected routes'
+icon: 'lock'
+---
+
+## Overview
+
+The Service Orders Management System uses JWT (JSON Web Token) based authentication to secure access to the application. The authentication system manages user login, token storage, and route protection.
+
+## Authentication Flow
+
+<Steps>
+  <Step title="User Login">
+    User enters email and password on the login page
+  </Step>
+  
+  <Step title="API Validation">
+    Credentials are sent to `/login` endpoint for validation
+  </Step>
+  
+  <Step title="Token Issuance">
+    Server returns JWT access token if credentials are valid
+  </Step>
+  
+  <Step title="Token Storage">
+    Token is stored in browser localStorage
+  </Step>
+  
+  <Step title="Authenticated Access">
+    Token is included in all subsequent API requests
+  </Step>
+</Steps>
+
+## Login Page
+
+The login interface (`pages/index.vue`) provides a user-friendly authentication form:
+
+### Login Form Structure
+
+```vue pages/index.vue
+<div class="col-md-6 bg-white rounded-end-4 p-4 d-flex flex-column justify-content-center">
+    <h2 class="title fw-bold text-center mb-4 fs-2">BIENVENIDO</h2>
+    <form action="#" class="w-100 px-3">
+        <div class="mb-4">
+            <label for="email" class="form-label fw-bold">Correo Electrónico</label>
+            <input type="email" class="form-control p-3 shadow" name="email" id="email"
+                placeholder="Ingrese su email" v-model="form.email" @input="validateEmail()" />
+        </div>
+
+        <div class="mb-4 position-relative">
+            <label for="password" class="form-label fw-bold">Contraseña</label>
+            <div class="input-group shadow rounded">
+                <input id="password" type="password" class="form-control border-end-0 p-3" name="password"
+                    placeholder="Ingrese su contraseña" required v-model="form.password"
+                    @input="validatePassword()" />
+                <span class="input-group-text bg-transparent border border-start-0 pe-3"
+                    @click="toggleInputPassword">
+                    <i class="fas fa-eye"></i>
+                </span>
+            </div>
+        </div>
+
+        <div class="d-grid mt-4">
+            <button type="submit" class="btn p-3 text-white fw-bold" @click.prevent="checkLogin">Acceder</button>
+        </div>
+    </form>
+</div>
+```
+
+### Form Features
+
+<CardGroup cols={2}>
+  <Card title="Email Validation" icon="envelope">
+    Real-time email validation ensures proper email format before submission.
+  </Card>
+  
+  <Card title="Password Toggle" icon="eye">
+    Users can toggle password visibility for easier input verification.
+  </Card>
+  
+  <Card title="Responsive Design" icon="mobile">
+    Login form adapts to different screen sizes with Bootstrap grid system.
+  </Card>
+  
+  <Card title="Visual Feedback" icon="circle-check">
+    Shadow effects and hover states provide clear interactive feedback.
+  </Card>
+</CardGroup>
+
+## Form Validation
+
+The system validates login credentials before submission:
+
+```typescript pages/index.vue
+const form = ref({
+    email: '',
+    password: ''
+})
+
+const formFlag = ref(true)
+
+const validateEmail = () => {
+    if (!form.value.email) {
+        alert("El email no puede estar vacío")
+        formFlag.value = false
+        return false
+    }
+    formFlag.value = true
+    return true
+}
+
+const validatePassword = () => {
+    if (!form.value.password) {
+        alert("La contraseña no puede estar vacía")
+        formFlag.value = false
+        return false
+    }
+    formFlag.value = true
+    return true
+}
+
+const validateForm = () => {
+    if (!validateEmail()) {
+        return
+    }
+    if (!validatePassword()) {
+        return
+    }
+    formFlag.value = true
+}
+```
+
+<Note>
+Validation occurs both on input (real-time) and before form submission to ensure data integrity.
+</Note>
+
+## Login Authentication
+
+The login process authenticates users and stores the access token:
+
+```typescript pages/index.vue
+const checkLogin = async () => {
+    validateForm()
+
+    if (!formFlag.value) {
+        return
+    }
+    
+    await api.post('/login', form.value).then(
+        (response) => {
+            localStorage.setItem('access_token', response.data.access_token)
+            window.location.href = '/serviceorders'
+        }).catch(
+            (error) => {
+                if (error.response.data.message) {
+                    alert(`Validacion Incorrecta: ${error.response.data.message}`)
+                }
+                else {
+                    alert(`Validacion Incorrecta`)
+                }
+
+                form.value.email=""
+                form.value.password=""
+        })
+}
+```
+
+### Login Process Breakdown
+
+<AccordionGroup>
+  <Accordion title="1. Form Validation">
+    The form is validated to ensure email and password are provided before making the API call.
+  </Accordion>
+  
+  <Accordion title="2. API Request">
+    Credentials are sent via POST request to `/login` endpoint using the API composable.
+  </Accordion>
+  
+  <Accordion title="3. Success Handler">
+    On successful authentication:
+    - Extract `access_token` from response
+    - Store token in localStorage
+    - Redirect user to `/serviceorders` page
+  </Accordion>
+  
+  <Accordion title="4. Error Handler">
+    On authentication failure:
+    - Display error message from server or generic message
+    - Clear email and password fields
+    - Allow user to retry login
+  </Accordion>
+</AccordionGroup>
+
+## Token Storage
+
+JWT tokens are stored in browser localStorage:
+
+```typescript
+localStorage.setItem('access_token', response.data.access_token)
+```
+
+<Warning>
+Storing tokens in localStorage makes them accessible to JavaScript on the page. Ensure your application is protected against XSS (Cross-Site Scripting) attacks.
+</Warning>
+
+### Token Persistence
+
+Tokens in localStorage:
+- ✅ Persist across browser sessions
+- ✅ Survive page refreshes
+- ✅ Available to all tabs/windows from the same origin
+- ❌ Vulnerable to XSS if application has security flaws
+
+## Auth Store (Pinia)
+
+The authentication state is managed using Pinia store:
+
+```typescript stores/auth.ts
+import { defineStore } from 'pinia'
+
+export const useAuthStore = defineStore('auth', {
+    state: () => ({
+        user: null,
+        token: null as string | null
+    }),
+
+    actions: {
+        setUser(userData: any, token: string) {
+            this.user = userData
+            this.token = token
+            localStorage.setItem('access_token', token)
+        },
+        logout() {
+            this.user = null
+            this.token = null
+            localStorage.removeItem('access_token')
+        },
+        initializeAuth() {
+            const storedToken = localStorage.getItem('access_token')
+            if (storedToken) {
+                this.token = storedToken
+            }
+        }
+    }
+})
+```
+
+### Auth Store Actions
+
+<ResponseField name="setUser" type="action">
+  Sets the authenticated user and token in both the store and localStorage.
+  
+  **Parameters:**
+  - `userData`: User information object
+  - `token`: JWT access token string
+</ResponseField>
+
+<ResponseField name="logout" type="action">
+  Clears user session by removing user data and token from both store and localStorage.
+</ResponseField>
+
+<ResponseField name="initializeAuth" type="action">
+  Restores authentication state from localStorage on app initialization. Called when app mounts to maintain session across page refreshes.
+</ResponseField>
+
+## API Authentication
+
+The `useApi` composable automatically includes authentication tokens in API requests:
+
+```typescript composables/useAPI.ts
+import axios from 'axios'
+
+export const useApi = () => {
+  const config = useRuntimeConfig()
+  const token = import.meta.client ? localStorage.getItem('access_token') : null
+  const { public: { apiBaseUrl } } = useRuntimeConfig()
+
+  const api = axios.create({
+    baseURL: apiBaseUrl as string,
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {})
+    }
+  })
+
+  return api
+}
+```
+
+### How It Works
+
+<Steps>
+  <Step title="Token Retrieval">
+    Retrieves access token from localStorage (only on client-side)
+  </Step>
+  
+  <Step title="Axios Instance Creation">
+    Creates an Axios instance with baseURL from runtime config
+  </Step>
+  
+  <Step title="Header Injection">
+    If token exists, adds `Authorization: Bearer <token>` header to all requests
+  </Step>
+  
+  <Step title="Request Execution">
+    All API calls using this composable are automatically authenticated
+  </Step>
+</Steps>
+
+<Tip>
+The `import.meta.client` check ensures token retrieval only happens in the browser, preventing SSR errors when localStorage is not available.
+</Tip>
+
+## Protected Routes
+
+Routes are protected using Nuxt middleware:
+
+```typescript middleware/auth.ts
+import { useAuthStore } from "~/stores/auth"
+
+export default defineNuxtRouteMiddleware((to, from) => {
+    const auth = useAuthStore()
+    if (!auth.token) {
+        return navigateTo('/')
+    }
+})
+```
+
+### Applying Middleware to Pages
+
+To protect a page, add the middleware to page meta:
+
+```vue pages/serviceorders/index.vue
+// definePageMeta({
+//     middleware: 'auth' //Middleware para proteger esta ruta
+// })
+```
+
+<Note>
+In the current codebase, the middleware is commented out on the service orders page. Uncomment this to enable route protection.
+</Note>
+
+### How Route Protection Works
+
+```mermaid
+graph TD
+    A[User navigates to protected route] --> B{Middleware checks token}
+    B -->|Token exists| C[Allow access to route]
+    B -->|No token| D[Redirect to login page /]
+    D --> E[User logs in]
+    E --> F[Token stored]
+    F --> A
+```
+
+## Session Initialization
+
+The auth store is initialized when the app mounts:
+
+```typescript middleware/auth.ts
+onMounted(() => {
+    const auth = useAuthStore()
+    auth.initializeAuth()
+})
+```
+
+This ensures that users with valid tokens in localStorage remain authenticated across page refreshes.
+
+## Logout Implementation
+
+To implement logout functionality, use the auth store's logout action:
+
+```typescript
+import { useAuthStore } from '~/stores/auth'
+
+const handleLogout = () => {
+    const auth = useAuthStore()
+    auth.logout()
+    navigateTo('/')
+}
+```
+
+## Security Best Practices
+
+<CardGroup cols={2}>
+  <Card title="HTTPS Only" icon="shield-halved">
+    Always use HTTPS in production to prevent token interception during transmission.
+  </Card>
+  
+  <Card title="Token Expiration" icon="clock">
+    Implement token expiration and refresh mechanisms to limit exposure window.
+  </Card>
+  
+  <Card title="XSS Protection" icon="bug-slash">
+    Sanitize all user inputs and use Content Security Policy headers to prevent XSS attacks.
+  </Card>
+  
+  <Card title="CSRF Protection" icon="shield">
+    Implement CSRF tokens for state-changing operations beyond just authentication.
+  </Card>
+</CardGroup>
+
+## Common Authentication Errors
+
+<AccordionGroup>
+  <Accordion title="Invalid Credentials">
+    **Error**: "Validacion Incorrecta"
+    
+    **Solution**: Verify email and password are correct. Check if account exists and is active.
+  </Accordion>
+  
+  <Accordion title="Token Expired">
+    **Error**: API returns 401 Unauthorized
+    
+    **Solution**: Implement token refresh logic or redirect user to login page to obtain new token.
+  </Accordion>
+  
+  <Accordion title="Network Error">
+    **Error**: Connection timeout or network unreachable
+    
+    **Solution**: Check API baseURL configuration and network connectivity.
+  </Accordion>
+  
+  <Accordion title="CORS Issues">
+    **Error**: CORS policy blocked request
+    
+    **Solution**: Configure backend to allow requests from your frontend domain.
+  </Accordion>
+</AccordionGroup>
+
+## Example: Complete Authentication Flow
+
+```typescript
+// 1. User submits login form
+const loginData = {
+  email: 'user@example.com',
+  password: 'securePassword123'
+}
+
+// 2. API validates credentials and returns token
+const response = await api.post('/login', loginData)
+// Response: { access_token: 'eyJhbGciOiJIUzI1NiIs...' }
+
+// 3. Token stored in localStorage
+localStorage.setItem('access_token', response.data.access_token)
+
+// 4. User redirected to service orders
+window.location.href = '/serviceorders'
+
+// 5. Subsequent API calls include token
+const api = useApi() // Automatically includes Bearer token
+const orders = await api.get('/service-orders')
+// Request headers: { Authorization: 'Bearer eyJhbGciOiJIUzI1NiIs...' }
+```
+
+<Tip>
+For improved user experience, consider implementing:
+- "Remember me" functionality
+- Automatic token refresh before expiration
+- Session timeout warnings
+- Multi-factor authentication for sensitive operations
+</Tip>

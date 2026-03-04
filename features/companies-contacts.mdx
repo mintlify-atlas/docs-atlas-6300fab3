@@ -1,0 +1,330 @@
+---
+title: 'Companies & Contacts'
+description: 'Managing company information and contact relationships in the service order system'
+icon: 'building'
+---
+
+## Overview
+
+The Companies & Contacts module manages customer information, including company details, contact persons, and their complete contact information. This data is fundamental to service order creation and customer relationship management.
+
+## Company Structure
+
+Companies represent the organizations that request services:
+
+```typescript types/ServiceOrder.ts
+export interface Company {
+    name: string,
+    headquarters: string
+}
+```
+
+### Company Fields
+
+<AccordionGroup>
+  <Accordion title="name">
+    The legal or business name of the company (e.g., "Tech Solutions S.A.S", "Digital Corp", "ElectroTech")
+  </Accordion>
+  
+  <Accordion title="headquarters">
+    The primary location or branch office (e.g., "Bogota", "Medellin", "Cali")
+  </Accordion>
+</AccordionGroup>
+
+<Note>
+Companies can have multiple locations or branches. The headquarters field identifies which specific location is associated with a service order.
+</Note>
+
+## Contact Information
+
+Contacts represent the individuals who interact with the service system:
+
+```typescript types/ServiceOrder.ts
+export interface Contact {
+    name: string,
+    last_name: string,
+    gender: string,
+    active: boolean,
+    identification: number,
+    charge: string,
+    birthday: string
+}
+```
+
+### Contact Fields Explained
+
+<ResponseField name="name" type="string" required>
+  The contact's first name
+</ResponseField>
+
+<ResponseField name="last_name" type="string" required>
+  The contact's family name or surname
+</ResponseField>
+
+<ResponseField name="gender" type="string">
+  Gender identification (e.g., "Masculino", "Femenino")
+</ResponseField>
+
+<ResponseField name="active" type="boolean" default={true}>
+  Indicates whether the contact is currently active in the system
+</ResponseField>
+
+<ResponseField name="identification" type="number" required>
+  National identification number (e.g., cedula number)
+</ResponseField>
+
+<ResponseField name="charge" type="string">
+  Job title or role (e.g., "admin", "técnico", "soporte")
+</ResponseField>
+
+<ResponseField name="birthday" type="string">
+  Contact's date of birth in DD/MM/YYYY format
+</ResponseField>
+
+## Contact Details Management
+
+The system manages multiple types of contact information through dedicated interfaces:
+
+### Email Addresses
+
+```typescript types/ServiceOrder.ts
+export interface Email {
+    mail: string
+}
+```
+
+Contacts can have multiple email addresses for different purposes (e.g., personal, work, billing).
+
+### Phone Numbers
+
+```typescript types/ServiceOrder.ts
+export interface Phone {
+    phone: number
+}
+```
+
+<Tip>
+The system supports both landline phones and mobile numbers. Colombian phone numbers typically include area codes.
+</Tip>
+
+### Physical Addresses
+
+```typescript types/ServiceOrder.ts
+export interface Address {
+    address: string
+}
+
+export interface City {
+    city: string
+}
+```
+
+Addresses are stored with their associated city for complete location information (e.g., "Crr 5 #23-67" in "Bogota").
+
+## Companies in Service Orders
+
+When creating a service order, users select the company and headquarters:
+
+```vue pages/serviceorders/order.vue
+<div class="mb-3 col-6">
+    <label for="company" class="font form-label fw-bold">Empresa:</label>
+    <div class="input-group">
+        <select id="company" class="form-select">
+            <option :value="company.id" v-for="company in companies">{{ company.company }}</option>
+        </select>
+        <button class="btn" style="background-color: #ec474f;">
+            <img src="../../public/plus-solid.svg" alt="" style="width: 20px; height: 20px;">
+        </button>
+    </div>
+</div>
+<div class="mb-3 col-5">
+    <label for="company" class="font form-label fw-bold">Sede:</label>
+    <div class="input-group">
+        <select id="company" class="form-select">
+            <option :value="company.id" v-for="company in companies">{{ company.company }}</option>
+        </select>
+        <button class="btn" style="background-color: #ec474f;">
+            <img src="../../public/plus-solid.svg" alt="" style="width: 20px; height: 20px;">
+        </button>
+    </div>
+</div>
+```
+
+<Note>
+The plus button (+) next to each dropdown allows users to quickly add new companies or branches without leaving the order creation form.
+</Note>
+
+## Contact Selection in Orders
+
+The order form includes contact selection with related information:
+
+```vue pages/serviceorders/order.vue
+<div class="mb-3 col-3">
+    <label for="company" class="font form-label fw-bold">Contacto:</label>
+    <div class="input-group" style="height: 7px;">
+        <select id="company" class="form-select">
+        </select>
+        <button class="btn" style="background-color: #ec474f;">
+            <img src="../../public/plus-solid.svg" alt="" style="width: 20px; height: 20px;">
+        </button>
+    </div>
+</div>
+
+<div class="col-3 mb-3">
+    <label for="cc" class="font form-label fw-bold">C.C</label>
+    <input type="text" id="cc" class="form-control"
+        v-model="selectedOrder.contacts" disabled />
+</div>
+
+<div class="col-3 mb-3">
+    <label for="cel" class="font form-label fw-bold">Teléfono:</label>
+    <input type="text" id="cel" class="form-control" v-model="selectedOrder.phones"
+        disabled />
+</div>
+
+<div class="col-4 mb-3">
+    <label for="email" class="font form-label fw-bold">Email:</label>
+    <input type="email" id="email" class="form-control" v-model="selectedOrder.mails"
+        disabled />
+</div>
+```
+
+When a contact is selected, their identification, phone, and email populate automatically in disabled fields for reference.
+
+## Viewing Contact Information
+
+The order detail view displays complete contact information:
+
+```vue pages/serviceorders/detail.vue
+<div class="card-body col-5 shadow shadow-lg m-2 p-3">
+    <a href="#" class="text-decoration-none text-dark fw-bold fs-4">
+        <img src="../../public/contact.svg" alt=""
+            style="width: 16px; height: 16px; margin-right: 5px;">
+        <span style="color: #666168;">Información de Contacto</span>
+    </a>
+    <ul>
+        <li class="mb-2 mt-4"><strong style="color: #5d5d5d;">Nombre: </strong>{{ order?.contacts?.name }}</li>
+        <li class="mb-2"><strong style="color: #5d5d5d;">Apellidos: </strong>{{ order?.contacts?.last_name }}</li>
+        <li class="mb-2"><strong style="color: #5d5d5d;">Género: </strong>{{ order?.contacts?.gender }}</li>
+        <li class="mb-2"><strong style="color: #5d5d5d;">Identificación: </strong>{{ order?.contacts?.identification }}</li>
+        <li class="mb-2"><strong style="color: #5d5d5d;">Cargo: </strong>{{ order?.contacts?.charge }}</li>
+    </ul>
+</div>
+```
+
+## Example Company & Contact Data
+
+Here's how companies and contacts are structured in the system:
+
+```typescript composables/useServiceOrders.ts
+{
+  company: { 
+    name: "Tech Solutions S.A.S", 
+    headquarters: "Bogota" 
+  },
+  contacts: { 
+    name: "Angie", 
+    last_name: "Gonzales", 
+    gender: "Femenino", 
+    active: true, 
+    identification: 1101532654, 
+    charge: "admin", 
+    birthday: "09/12/2005" 
+  },
+  mails: { mail: "angie123@gmail.com" },
+  phones: { phone: 31356245120 },
+  addresses: { address: "Crr 5 #23-67" },
+  cities: { city: "Bogota" }
+}
+```
+
+## Service Order Relationships
+
+Each service order links to one company and can have multiple contacts:
+
+```typescript types/ServiceOrder.ts
+export interface ServiceOrder {
+    id: number,
+    number: number,
+    type: string,
+    // ... other fields
+    company: Company,              // Single company
+    contacts: Contact[],           // Multiple contacts
+    mails: Email[],               // Multiple emails
+    phones: Phone[],              // Multiple phone numbers
+    addresses: Address[],         // Multiple addresses
+    cities: City[]
+}
+```
+
+<Warning>
+While the interface supports multiple contacts, emails, phones, and addresses per order, ensure you select the primary contact and their preferred communication method for service coordination.
+</Warning>
+
+## Address Format
+
+Colombian addresses follow a specific format:
+
+<CodeGroup>
+```text Carrera (Crr)
+Crr 5 #23-67
+```
+
+```text Calle (Cll)
+Cll 33 #22-11
+```
+
+```text Avenida (Av)
+Av 10 #45-89
+```
+</CodeGroup>
+
+The format is: `[Street Type] [Number] #[Number]-[Number]`
+
+## Common Cities
+
+The system commonly handles service orders from major Colombian cities:
+
+<CardGroup cols={3}>
+  <Card title="Bogota" icon="location-dot">
+    Capital and largest city
+  </Card>
+  
+  <Card title="Medellin" icon="location-dot">
+    Second largest city
+  </Card>
+  
+  <Card title="Cali" icon="location-dot">
+    Third largest city
+  </Card>
+</CardGroup>
+
+## Best Practices
+
+<Steps>
+  <Step title="Verify Contact Information">
+    Always confirm phone numbers and email addresses are current before creating service orders.
+  </Step>
+  
+  <Step title="Complete Address Details">
+    Include both the street address and city for accurate service dispatch.
+  </Step>
+  
+  <Step title="Update Contact Status">
+    Mark contacts as inactive when they leave the company rather than deleting them to maintain historical records.
+  </Step>
+  
+  <Step title="Primary Contact">
+    Identify a primary contact for each company to streamline communication.
+  </Step>
+</Steps>
+
+## Data Validation
+
+<Tip>
+The system validates:
+- Email format for all email addresses
+- Phone number length for Colombian numbers
+- Required fields (name, identification) before saving
+- Unique identification numbers to prevent duplicates
+</Tip>

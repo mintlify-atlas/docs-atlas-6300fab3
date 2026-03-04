@@ -1,0 +1,221 @@
+---
+title: 'Project Structure'
+description: 'Understanding the Nuxt 3 directory structure and organization'
+---
+
+The Service Orders Management System is built with Nuxt 3, following the framework's conventions for file-based routing and auto-imports. This page explains the project structure and how different directories work together.
+
+## Overview
+
+The project follows Nuxt 3's standard directory structure, which provides automatic imports, file-based routing, and a clear separation of concerns.
+
+```
+source/
+├── components/       # Vue components (auto-imported)
+├── composables/      # Composable functions (auto-imported)
+├── layouts/          # Layout components
+├── middleware/       # Route middleware
+├── pages/            # File-based routing
+├── plugins/          # Nuxt plugins
+├── public/           # Static assets
+├── server/           # Server API routes
+├── stores/           # Pinia state stores
+├── types/            # TypeScript type definitions
+├── utils/            # Utility functions (auto-imported)
+├── app.vue           # Root application component
+└── nuxt.config.ts    # Nuxt configuration
+```
+
+## Key Directories
+
+<AccordionGroup>
+  <Accordion title="components/">
+    Contains reusable Vue components that are automatically imported throughout the application.
+    
+    **Auto-import**: Components in this directory don't need explicit imports in your pages or other components.
+    
+    Example:
+    - `components/Modal.vue` can be used as `<Modal />` anywhere without importing
+  </Accordion>
+
+  <Accordion title="composables/">
+    Contains composable functions following the Vue Composition API pattern. These provide reusable logic for components.
+    
+    **Auto-import**: All composables are automatically available throughout your application.
+    
+    Key composables:
+    - `useApi()` - Axios instance with authentication
+    - `useServiceOrders()` - Service orders state and operations
+  </Accordion>
+
+  <Accordion title="pages/">
+    Implements file-based routing. Each Vue file becomes a route automatically.
+    
+    **Structure**:
+    ```
+    pages/
+    ├── index.vue                    # Route: /
+    └── serviceorders/
+        ├── index.vue                # Route: /serviceorders
+        ├── detail.vue               # Component (not a route)
+        ├── order.vue                # Component (not a route)
+        ├── solution.vue             # Component (not a route)
+        ├── perfil.vue               # Route: /serviceorders/perfil
+        └── editPerfil.vue           # Route: /serviceorders/editPerfil
+    ```
+  </Accordion>
+
+  <Accordion title="stores/">
+    Contains Pinia stores for global state management.
+    
+    **Available stores**:
+    - `auth.ts` - Authentication state (user, token)
+    
+    Stores are auto-imported when using `@pinia/nuxt` module.
+  </Accordion>
+
+  <Accordion title="layouts/">
+    Defines layout templates that wrap page content.
+    
+    **Available layouts**:
+    - `default.vue` - Main layout with header and user menu
+    - `empty.vue` - Minimal layout for login page
+    
+    Pages specify their layout using `definePageMeta()`.
+  </Accordion>
+
+  <Accordion title="middleware/">
+    Contains route middleware for navigation guards.
+    
+    **Available middleware**:
+    - `auth.ts` - Protects routes requiring authentication
+    
+    Applied to pages via `definePageMeta({ middleware: 'auth' })`.
+  </Accordion>
+
+  <Accordion title="types/">
+    TypeScript type definitions and interfaces.
+    
+    **Key types**:
+    - `ServiceOrder.ts` - Defines the service order data structure
+  </Accordion>
+
+  <Accordion title="utils/">
+    Utility functions that are auto-imported across the application.
+    
+    **Available utilities**:
+    - `authService.ts` - Authentication helper functions
+  </Accordion>
+</AccordionGroup>
+
+## Root Application Component
+
+The `app.vue` file is the root component that wraps your entire application:
+
+```vue app.vue
+<template>
+  <div>
+    <NuxtLayout>
+      <NuxtPage />
+    </NuxtLayout>
+  </div>
+</template>
+```
+
+**Key components**:
+- `<NuxtLayout>` - Renders the active layout component
+- `<NuxtPage>` - Renders the current page based on route
+
+## Configuration
+
+The `nuxt.config.ts` file configures your Nuxt application:
+
+```typescript nuxt.config.ts
+export default defineNuxtConfig({
+  components: true,
+  css: ['bootstrap/dist/css/bootstrap.min.css'],
+  vite: {
+    define: {
+      "process.env.DEBUG": false,
+    },
+  },
+  compatibilityDate: '2024-11-01',
+  devtools: { enabled: true },
+
+  modules: [
+    'usebootstrap',
+    '@nuxt/content',
+    '@nuxt/eslint',
+    '@nuxt/fonts',
+    '@nuxt/icon',
+    '@nuxt/image',
+    '@nuxt/scripts',
+    '@nuxt/test-utils',
+    '@nuxt/ui',
+    '@pinia/nuxt'
+  ],
+
+  runtimeConfig: {
+    public: {
+      apiBaseUrl: 'http://localhost:8000/api/'
+    }
+  },
+})
+```
+
+**Key configurations**:
+- **modules**: Nuxt modules including Pinia for state management
+- **runtimeConfig**: Environment-specific configuration (API base URL)
+- **components**: Auto-import components from the components directory
+
+## Auto-Imports
+
+<Note>
+Nuxt 3 automatically imports components, composables, and utilities. You don't need explicit import statements for:
+- Components in `components/`
+- Composables in `composables/`
+- Utilities in `utils/`
+- Nuxt helpers like `navigateTo()`, `useRouter()`, `useState()`, etc.
+</Note>
+
+### Example: Using Auto-Imports
+
+```vue
+<template>
+  <!-- Modal component is auto-imported -->
+  <Modal :show="showModal" />
+</template>
+
+<script setup>
+// useApi() is auto-imported from composables/
+const api = useApi()
+
+// useAuthStore() is auto-imported from stores/
+const authStore = useAuthStore()
+
+// navigateTo() is a Nuxt helper (auto-imported)
+const goToOrders = () => navigateTo('/serviceorders')
+</script>
+```
+
+## Best Practices
+
+1. **Follow naming conventions**: Use PascalCase for components, camelCase for composables
+2. **Leverage auto-imports**: Don't manually import what Nuxt provides automatically
+3. **Organize by feature**: Keep related files in subdirectories (e.g., `pages/serviceorders/`)
+4. **Use TypeScript**: Define types in the `types/` directory for better type safety
+5. **Modular composables**: Keep composables focused on a single responsibility
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="State Management" icon="database" href="/development/state-management">
+    Learn how to use Pinia stores for global state
+  </Card>
+  <Card title="Composables" icon="code" href="/development/composables">
+    Discover reusable composable functions
+  </Card>
+  <Card title="API Integration" icon="plug" href="/development/api-integration">
+    Understand how to make API calls
+  </Card>
+</CardGroup>

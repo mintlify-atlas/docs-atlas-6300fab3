@@ -1,0 +1,520 @@
+---
+title: 'API Integration'
+description: 'Making HTTP requests and handling API responses'
+---
+
+The Service Orders Management System communicates with a backend API using Axios. This page explains how API integration works, including authentication, error handling, and common patterns.
+
+## API Setup
+
+The application uses the `useApi()` composable to create configured Axios instances for API calls.
+
+### Axios Configuration
+
+```typescript composables/useAPI.ts
+import axios from 'axios'
+
+export const useApi = () => {
+  const config = useRuntimeConfig()
+  const token = import.meta.client ? localStorage.getItem('access_token') : null
+  const { public: { apiBaseUrl } } = useRuntimeConfig()
+
+  const api = axios.create({
+    baseURL: apiBaseUrl as string,
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {})
+    }
+  })
+
+  return api
+}
+```
+
+### Key Configuration Elements
+
+<AccordionGroup>
+  <Accordion title="Base URL">
+    The API base URL is configured in `nuxt.config.ts` using runtime config:
+    
+    ```typescript nuxt.config.ts
+    export default defineNuxtConfig({
+      runtimeConfig: {
+        public: {
+          apiBaseUrl: 'http://localhost:8000/api/'
+        }
+      },
+    })
+    ```
+    
+    **Benefits**:
+    - Environment-specific configuration
+    - Can be overridden with environment variables
+    - Centralized API endpoint management
+    
+    **Usage**:
+    ```typescript
+    const { public: { apiBaseUrl } } = useRuntimeConfig()
+    ```
+  </Accordion>
+
+  <Accordion title="Default Headers">
+    Every request includes these headers:
+    
+    ```typescript
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {})
+    }
+    ```
+    
+    - **Accept**: Tells the server we expect JSON responses
+    - **Content-Type**: Indicates we're sending JSON data
+    - **Authorization**: Bearer token for authenticated requests
+  </Accordion>
+
+  <Accordion title="Authentication Token">
+    The token is retrieved from localStorage on the client:
+    
+    ```typescript
+    const token = import.meta.client ? localStorage.getItem('access_token') : null
+    ```
+    
+    **Why the client check?**
+    - Prevents errors during server-side rendering (SSR)
+    - localStorage is only available in browsers
+    - Returns `null` on server, ensuring SSR compatibility
+  </Accordion>
+</AccordionGroup>
+
+## Authentication Flow
+
+### Login Request
+
+Here's how the login process works in `pages/index.vue`:
+
+```vue pages/index.vue (login)
+<script setup>
+import { useRouter } from 'vue-router';
+import { ref } from 'vue';
+import { useAuthStore } from '~/stores/auth';
+
+const form = ref({
+    email: '',
+    password: ''
+})
+
+const api = useApi()
+
+const checkLogin = async () => {
+    validateForm()
+    
+    if (!formFlag.value) {
+        return
+    }
+    
+    await api.post('/login', form.value).then(
+        (response) => {
+            // Store the access token
+            localStorage.setItem('access_token', response.data.access_token)
+            // Redirect to service orders page
+            window.location.href = '/serviceorders'
+        }).catch(
+            (error) => {
+                // Handle login errors
+                if (error.response.data.message) {
+                    alert(`Validacion Incorrecta: ${error.response.data.message}`)
+                }
+                else {
+                    alert(`Validacion Incorrecta`)
+                }
+                
+                form.value.email=""
+                form.value.password=""
+        })
+}
+</script>
+```
+
+**Flow**:
+1. User submits email and password
+2. POST request to `/login` endpoint
+3. On success: Store token in localStorage and redirect
+4. On error: Display error message and clear form
+
+### Authenticated Requests
+
+Once logged in, all subsequent requests automatically include the Bearer token:
+
+```typescript
+const api = useApi()
+
+// This request includes: Authorization: Bearer <token>
+const response = await api.get('/service-orders')
+```
+
+### Logout Request
+
+```vue layouts/default.vue (logout)
+<script setup>
+const api = useApi()
+
+const logout = async () => {
+    // Call logout endpoint
+    await api.post('/logout')
+    // Clear local token
+    localStorage.removeItem('access_token')
+    // Redirect to login
+    window.location.href = '/'
+}
+</script>
+```
+
+## Common API Patterns
+
+### Fetching Data
+
+<CodeGroup>
+
+```typescript GET Request
+const api = useApi()
+const orders = ref([])
+
+const getServiceOrders = async () => {
+    try {
+        const response = await api.get('/service-orders')
+        orders.value = response.data
+    } catch (error) {
+        console.error('Failed to fetch orders:', error)
+    }
+}
+
+onMounted(async () => {
+   await getServiceOrders()
+})
+```
+
+```typescript GET with Parameters
+const api = useApi()
+
+const getOrder = async (id: number) => {
+    try {
+        const response = await api.get(`/service-orders/${id}`)
+        return response.data
+    } catch (error) {
+        console.error('Failed to fetch order:', error)
+        throw error
+    }
+}
+```
+
+```typescript GET with Query Params
+const api = useApi()
+
+const searchOrders = async (filters: any) => {
+    try {
+        const response = await api.get('/service-orders', {
+            params: filters
+        })
+        return response.data
+    } catch (error) {
+        console.error('Failed to search orders:', error)
+        throw error
+    }
+}
+
+// Usage
+const results = await searchOrders({
+    client: 'Tech Solutions',
+    dateFrom: '2024-01-01',
+    dateTo: '2024-12-31'
+})
+```
+
+</CodeGroup>
+
+### Creating Data
+
+<CodeGroup>
+
+```typescript POST Request
+const api = useApi()
+
+const createOrder = async (orderData: ServiceOrder) => {
+    try {
+        const response = await api.post('/service-orders', orderData)
+        return response.data
+    } catch (error) {
+        console.error('Failed to create order:', error)
+        throw error
+    }
+}
+```
+
+```typescript Login Example
+const api = useApi()
+
+const login = async (email: string, password: string) => {
+    try {
+        const response = await api.post('/login', {
+            email,
+            password
+        })
+        
+        // Store token
+        localStorage.setItem('access_token', response.data.access_token)
+        
+        return response.data
+    } catch (error) {
+        throw error
+    }
+}
+```
+
+</CodeGroup>
+
+### Updating Data
+
+<CodeGroup>
+
+```typescript PUT Request
+const api = useApi()
+
+const updateOrder = async (id: number, orderData: ServiceOrder) => {
+    try {
+        const response = await api.put(`/service-orders/${id}`, orderData)
+        return response.data
+    } catch (error) {
+        console.error('Failed to update order:', error)
+        throw error
+    }
+}
+```
+
+```typescript PATCH Request
+const api = useApi()
+
+const updateOrderSolution = async (id: number, solution: string) => {
+    try {
+        const response = await api.patch(`/service-orders/${id}`, {
+            solution
+        })
+        return response.data
+    } catch (error) {
+        console.error('Failed to update solution:', error)
+        throw error
+    }
+}
+```
+
+</CodeGroup>
+
+### Deleting Data
+
+```typescript DELETE Request
+const api = useApi()
+
+const deleteOrder = async (id: number) => {
+    try {
+        const response = await api.delete(`/service-orders/${id}`)
+        return response.data
+    } catch (error) {
+        console.error('Failed to delete order:', error)
+        throw error
+    }
+}
+```
+
+## Error Handling Patterns
+
+### Basic Error Handling
+
+```typescript
+const api = useApi()
+
+const fetchData = async () => {
+    try {
+        const response = await api.get('/service-orders')
+        return response.data
+    } catch (error) {
+        console.error('Error:', error)
+        // Handle error appropriately
+        alert('Failed to fetch data')
+    }
+}
+```
+
+### Detailed Error Handling
+
+```typescript
+const api = useApi()
+
+const login = async (credentials) => {
+    try {
+        const response = await api.post('/login', credentials)
+        return response.data
+    } catch (error) {
+        // Check if error has response from server
+        if (error.response) {
+            // Server responded with error
+            const message = error.response.data.message || 'Login failed'
+            alert(`Validation Error: ${message}`)
+        } else if (error.request) {
+            // Request made but no response received
+            alert('No response from server. Please check your connection.')
+        } else {
+            // Error setting up request
+            alert('An error occurred. Please try again.')
+        }
+        throw error
+    }
+}
+```
+
+### Error Handling with State
+
+```vue
+<template>
+  <div>
+    <div v-if="loading">Loading...</div>
+    <div v-else-if="error">Error: {{ error }}</div>
+    <div v-else>
+      <!-- Display data -->
+    </div>
+  </div>
+</template>
+
+<script setup>
+const api = useApi()
+const orders = ref([])
+const loading = ref(false)
+const error = ref(null)
+
+const fetchOrders = async () => {
+    loading.value = true
+    error.value = null
+    
+    try {
+        const response = await api.get('/service-orders')
+        orders.value = response.data
+    } catch (err) {
+        error.value = err.message
+    } finally {
+        loading.value = false
+    }
+}
+
+onMounted(() => {
+    fetchOrders()
+})
+</script>
+```
+
+## Response Structure
+
+### Successful Response
+
+```typescript
+// API Response
+{
+  data: [
+    {
+      id: 1,
+      number: 123456,
+      type: "garantía",
+      company: { name: "Tech Solutions" },
+      // ... other fields
+    }
+  ]
+}
+
+// Accessing data
+const response = await api.get('/service-orders')
+const orders = response.data // Array of orders
+```
+
+### Error Response
+
+```typescript
+// API Error Response
+{
+  response: {
+    status: 401,
+    data: {
+      message: "Invalid credentials"
+    }
+  }
+}
+
+// Handling error
+try {
+  await api.post('/login', credentials)
+} catch (error) {
+  console.log(error.response.status)        // 401
+  console.log(error.response.data.message)  // "Invalid credentials"
+}
+```
+
+## TypeScript Integration
+
+Define interfaces for API responses:
+
+```typescript
+interface ApiResponse<T> {
+  data: T;
+}
+
+const getServiceOrders = async (): Promise<ApiResponse<ServiceOrder[]>> => {
+    const response = await api.get('/service-orders')
+    return response
+}
+```
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Always Handle Errors" icon="shield-halved">
+    Use try-catch blocks and provide meaningful error messages to users
+  </Card>
+  <Card title="Loading States" icon="spinner">
+    Show loading indicators during API calls for better UX
+  </Card>
+  <Card title="Reuse API Instance" icon="recycle">
+    Always use `useApi()` instead of creating new Axios instances
+  </Card>
+  <Card title="Type Your Responses" icon="code">
+    Use TypeScript interfaces for API responses to ensure type safety
+  </Card>
+</CardGroup>
+
+## Common Endpoints
+
+Based on the codebase, here are the API endpoints in use:
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| POST | `/login` | Authenticate user | No |
+| POST | `/logout` | End user session | Yes |
+| GET | `/service-orders` | Get all service orders | Yes |
+| GET | `/service-orders/:id` | Get specific order | Yes |
+| POST | `/service-orders` | Create new order | Yes |
+| PUT | `/service-orders/:id` | Update entire order | Yes |
+| PATCH | `/service-orders/:id` | Partially update order | Yes |
+| DELETE | `/service-orders/:id` | Delete order | Yes |
+
+<Note>
+All endpoints (except `/login`) require a valid Bearer token in the Authorization header.
+</Note>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Composables" icon="code" href="/development/composables">
+    Learn more about the useApi composable
+  </Card>
+  <Card title="State Management" icon="database" href="/development/state-management">
+    Understand how authentication state is managed
+  </Card>
+</CardGroup>

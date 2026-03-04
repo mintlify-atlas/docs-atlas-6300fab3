@@ -1,0 +1,312 @@
+---
+title: Installation
+description: 'Install and set up the Service Orders Management System'
+---
+
+## Prerequisites
+
+Before installing the Service Orders Management System, ensure you have the following:
+
+<CardGroup cols={2}>
+  <Card title="Node.js" icon="node-js">
+    Node.js 18.x or higher (LTS version recommended)
+  </Card>
+  
+  <Card title="Package Manager" icon="box">
+    npm, pnpm, yarn, or bun
+  </Card>
+  
+  <Card title="Backend API" icon="server">
+    Running backend service (default: http://localhost:8000/api/)
+  </Card>
+  
+  <Card title="Git" icon="git">
+    Git for cloning the repository
+  </Card>
+</CardGroup>
+
+<Note>
+Check your Node.js version with `node --version`. The application is built with Nuxt 3, which requires Node.js 18.x or later.
+</Note>
+
+## Installation Steps
+
+### 1. Clone the Repository
+
+First, clone the project repository to your local machine:
+
+```bash
+git clone <repository-url>
+cd nuxt-app
+```
+
+### 2. Install Dependencies
+
+Install all required dependencies using your preferred package manager:
+
+<CodeGroup>
+```bash npm
+npm install
+```
+
+```bash pnpm
+pnpm install
+```
+
+```bash yarn
+yarn install
+```
+
+```bash bun
+bun install
+```
+</CodeGroup>
+
+The installation process will install all dependencies defined in `package.json`:
+
+```json package.json
+{
+  "dependencies": {
+    "@nuxt/ui": "^3.0.2",
+    "@pinia/nuxt": "^0.11.0",
+    "axios": "^1.9.0",
+    "bootstrap": "^5.3.3",
+    "nuxt": "^3.16.1",
+    "pinia": "^3.0.2",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.0",
+    "@nuxt/content": "^3.4.0",
+    "@nuxt/icon": "^1.11.0",
+    "@nuxt/image": "^1.10.0",
+    "@fortawesome/fontawesome-svg-core": "^6.7.2",
+    "@fortawesome/free-solid-svg-icons": "^6.7.2",
+    "@fortawesome/vue-fontawesome": "^3.0.8",
+    "typescript": "^5.8.2"
+  }
+}
+```
+
+<Tip>
+The `postinstall` script automatically runs `nuxt prepare` after installation to set up TypeScript types and auto-imports.
+</Tip>
+
+## Key Dependencies Explained
+
+The Service Orders Management System relies on several essential dependencies:
+
+### Core Framework
+
+- **Nuxt 3** (`^3.16.1`) - The Vue.js framework providing SSR, routing, and auto-imports
+- **Vue 3** (`^3.5.13`) - The progressive JavaScript framework with Composition API
+- **Vue Router** (`^4.5.0`) - Official router for Vue.js applications
+
+### State Management & Data
+
+- **Pinia** (`^3.0.2`) - Official state management library for Vue
+- **@pinia/nuxt** (`^0.11.0`) - Nuxt module for seamless Pinia integration
+- **Axios** (`^1.9.0`) - Promise-based HTTP client for API requests
+
+### UI & Styling
+
+- **Bootstrap** (`^5.3.3`) - CSS framework for responsive, mobile-first design
+- **@nuxt/ui** (`^3.0.2`) - Pre-built UI components for Nuxt applications
+- **@nuxt/icon** (`^1.11.0`) - Icon component with multiple icon sets
+- **@fortawesome/vue-fontawesome** (`^3.0.8`) - Font Awesome icon integration for Vue
+
+### Additional Modules
+
+- **@nuxt/content** (`^3.4.0`) - File-based CMS for Nuxt
+- **@nuxt/image** (`^1.10.0`) - Image optimization and transformation
+- **@nuxt/fonts** (`^0.11.0`) - Font optimization and loading
+- **TypeScript** (`^5.8.2`) - Type-safe JavaScript
+
+## Post-Installation Setup
+
+### Automatic Setup
+
+After running the installation command, the `postinstall` script automatically executes:
+
+```json package.json
+{
+  "scripts": {
+    "postinstall": "nuxt prepare"
+  }
+}
+```
+
+The `nuxt prepare` command:
+- Generates TypeScript type definitions
+- Sets up auto-import configurations
+- Prepares the `.nuxt` directory with build artifacts
+
+### Manual Preparation (if needed)
+
+If you need to re-run the preparation step manually:
+
+<CodeGroup>
+```bash npm
+npm run postinstall
+```
+
+```bash pnpm
+pnpm postinstall
+```
+
+```bash yarn
+yarn postinstall
+```
+
+```bash bun
+bun run postinstall
+```
+</CodeGroup>
+
+## Configuration
+
+### Nuxt Configuration
+
+The application is configured in `nuxt.config.ts`:
+
+```typescript nuxt.config.ts
+export default defineNuxtConfig({
+  components: true,
+  css: ['bootstrap/dist/css/bootstrap.min.css'],
+  
+  vite: {
+    define: {
+      "process.env.DEBUG": false,
+    },
+  },
+  
+  compatibilityDate: '2024-11-01',
+  devtools: { enabled: true },
+
+  modules: [
+    'usebootstrap',
+    '@nuxt/content',
+    '@nuxt/eslint',
+    '@nuxt/fonts',
+    '@nuxt/icon',
+    '@nuxt/image',
+    '@nuxt/scripts',
+    '@nuxt/test-utils',
+    '@nuxt/ui',
+    '@pinia/nuxt'
+  ],
+
+  runtimeConfig: {
+    public: {
+      apiBaseUrl: 'http://localhost:8000/api/'
+    }
+  },
+})
+```
+
+### Environment Variables
+
+You can override the API base URL using environment variables:
+
+```bash .env
+NUXT_PUBLIC_API_BASE_URL=https://your-api.com/api/
+```
+
+<Warning>
+Make sure your backend API is running and accessible at the configured URL before starting the development server.
+</Warning>
+
+## Verify Installation
+
+After installation, verify everything is set up correctly:
+
+1. **Check for the `.nuxt` directory** - Created by `nuxt prepare`
+2. **Verify `node_modules` folder** - Contains all installed dependencies
+3. **Run the development server**:
+
+<CodeGroup>
+```bash npm
+npm run dev
+```
+
+```bash pnpm
+pnpm dev
+```
+
+```bash yarn
+yarn dev
+```
+
+```bash bun
+bun run dev
+```
+</CodeGroup>
+
+4. **Access the application** at `http://localhost:3000`
+
+<Note>
+If you encounter any issues, try deleting `node_modules` and the `.nuxt` directory, then run the installation again.
+</Note>
+
+## Build for Production
+
+When you're ready to build for production:
+
+<CodeGroup>
+```bash npm
+npm run build
+```
+
+```bash pnpm
+pnpm build
+```
+
+```bash yarn
+yarn build
+```
+
+```bash bun
+bun run build
+```
+</CodeGroup>
+
+This creates an optimized production build in the `.output` directory.
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Quickstart Guide" icon="rocket" href="/quickstart">
+    Follow the quickstart to run your first service order
+  </Card>
+  
+  <Card title="Project Structure" icon="folder-tree" href="/development/project-structure">
+    Learn about the codebase organization
+  </Card>
+  
+  <Card title="API Integration" icon="plug" href="/development/api-integration">
+    Configure and use the API client
+  </Card>
+  
+  <Card title="Deployment" icon="server" href="/deployment/building">
+    Deploy your application to production
+  </Card>
+</CardGroup>
+
+## Troubleshooting
+
+### Common Issues
+
+**Module not found errors**
+```bash
+rm -rf node_modules .nuxt
+npm install
+```
+
+**Port 3000 already in use**
+```bash
+# Use a different port
+PORT=3001 npm run dev
+```
+
+**API connection errors**
+- Verify your backend API is running
+- Check the `apiBaseUrl` in `nuxt.config.ts`
+- Ensure CORS is properly configured on your backend

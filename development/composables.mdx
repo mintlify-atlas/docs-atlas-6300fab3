@@ -1,0 +1,379 @@
+---
+title: 'Composables'
+description: 'Reusable composition functions for shared logic'
+---
+
+Composables are reusable functions that leverage Vue's Composition API to encapsulate and share stateful logic. In Nuxt 3, composables placed in the `composables/` directory are automatically imported throughout your application.
+
+## What Are Composables?
+
+Composables are functions that:
+- Follow the `useXxx` naming convention
+- Can use Vue's reactivity system (ref, reactive, computed)
+- Encapsulate reusable logic
+- Are automatically imported in Nuxt 3
+
+<Note>
+**Auto-import**: All files in `composables/` are automatically available without explicit imports. Just call `useApi()` or `useServiceOrders()` anywhere in your app.
+</Note>
+
+## useApi Composable
+
+The `useApi` composable provides a configured Axios instance for making HTTP requests to the backend API.
+
+### Full Source Code
+
+```typescript composables/useAPI.ts
+import axios from 'axios'
+
+export const useApi = () => {
+  const config = useRuntimeConfig()
+  const token = import.meta.client ? localStorage.getItem('access_token') : null
+  const { public: { apiBaseUrl } } = useRuntimeConfig()
+
+  const api = axios.create({
+    baseURL: apiBaseUrl as string,
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {})
+    }
+  })
+
+  return api
+}
+```
+
+### Key Features
+
+<AccordionGroup>
+  <Accordion title="Runtime Configuration">
+    Reads the API base URL from Nuxt's runtime config:
+    
+    ```typescript
+    const { public: { apiBaseUrl } } = useRuntimeConfig()
+    ```
+    
+    The base URL is defined in `nuxt.config.ts`:
+    ```typescript
+    runtimeConfig: {
+      public: {
+        apiBaseUrl: 'http://localhost:8000/api/'
+      }
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Client-Side Token Handling">
+    Retrieves the authentication token from localStorage (only on client):
+    
+    ```typescript
+    const token = import.meta.client ? localStorage.getItem('access_token') : null
+    ```
+    
+    **Why check `import.meta.client`?**
+    - Prevents errors during server-side rendering
+    - localStorage is only available in the browser
+  </Accordion>
+
+  <Accordion title="Authentication Headers">
+    Automatically includes the Bearer token in all requests:
+    
+    ```typescript
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {})
+    }
+    ```
+    
+    If a token exists, adds: `Authorization: Bearer <token>`
+  </Accordion>
+</AccordionGroup>
+
+### Usage Examples
+
+<CodeGroup>
+
+```vue Login
+<script setup>
+const api = useApi()
+const form = ref({ email: '', password: '' })
+
+const checkLogin = async () => {
+    await api.post('/login', form.value).then(
+        (response) => {
+            localStorage.setItem('access_token', response.data.access_token)
+            window.location.href = '/serviceorders'
+        }).catch(
+            (error) => {
+                alert(`Validacion Incorrecta: ${error.response.data.message}`)
+            })
+}
+</script>
+```
+
+```vue Fetch Data
+<script setup>
+const api = useApi()
+const orders = ref([])
+
+const getServiceOrders = async () => {
+    const response = await api.get('/service-orders')
+    orders.value = response.data
+}
+
+onMounted(async () => {
+   orders.value = await getServiceOrders()
+})
+</script>
+```
+
+```vue Logout
+<script setup>
+const api = useApi()
+
+const logout = async () => {
+    await api.post('/logout')
+    localStorage.removeItem('access_token')
+    window.location.href = '/'
+}
+</script>
+```
+
+</CodeGroup>
+
+## useServiceOrders Composable
+
+The `useServiceOrders` composable manages service order state and provides helper functions for working with orders.
+
+### Full Source Code
+
+```typescript composables/useServiceOrders.ts
+import { ref } from 'vue'
+import type { ServiceOrder } from '~/types/ServiceOrder'
+
+export const useServiceOrders = () => {
+  const serviceOrders = ref<ServiceOrder[]>([
+    {
+      id: 1,
+      number: 123456,
+      type: "garantía",
+      part_number: "ab123",
+      serial_number: "6303934",
+      description: "Lorem ipsum dolor sit amet...",
+      solution: "lorem ipsum",
+      company: { name: "Tech Solutions S.A.S", headquarters: "Bogota" },
+      contacts: { name: "Angie", last_name: "Gonzales", gender: "Femenino", active: true, identification: 1101532654, charge: "admin", birthday: "09/12/2005" },
+      mails: { mail: "angie123@gmail.com" },
+      phones: { phone: 31356245120 },
+      addresses: { address: "Crr 5 #23-67" },
+      cities: { city: "Bogota" },
+      equipment_types: { name: "Lenovo" },
+      delivery_conditions: { description: "descripcion" }
+    },
+    // ... more mock data
+  ])
+
+  const selectedOrder = ref<ServiceOrder>(getEmptyOrder())
+
+  function openModal(isNew: boolean, orderObject: any = null) {
+    selectedOrder.value = isNew ? getEmptyOrder() : orderObject
+  }
+
+  function getEmptyOrder(): ServiceOrder {
+    return {
+      id: 0,
+      number: 0,
+      type: '',
+      part_number: '',
+      serial_number: '',
+      description: '',
+      solution: '',
+      company: { name: '', headquarters: '' },
+      contacts: { name: '', last_name: '', gender: '', active: true, identification: 0, charge: '', birthday: '' },
+      mails: { mail: '' },
+      phones: { phone: 0 },
+      addresses: { address: '' },
+      cities: { city: '' },
+      equipment_types: { name: '' },
+      delivery_conditions: { description: '' }
+    }
+  }
+
+  return {
+    serviceOrders,
+    selectedOrder,
+    openModal
+  }
+}
+```
+
+### Key Features
+
+<AccordionGroup>
+  <Accordion title="Reactive State">
+    Uses Vue's `ref()` to create reactive state:
+    
+    ```typescript
+    const serviceOrders = ref<ServiceOrder[]>([...])
+    const selectedOrder = ref<ServiceOrder>(getEmptyOrder())
+    ```
+    
+    - `serviceOrders`: Array of all service orders
+    - `selectedOrder`: Currently selected order for viewing/editing
+  </Accordion>
+
+  <Accordion title="Helper Functions">
+    **openModal(isNew, orderObject)**
+    - Prepares the selected order for modal display
+    - If `isNew` is true, creates an empty order
+    - Otherwise, uses the provided order object
+    
+    **getEmptyOrder()**
+    - Returns a new empty ServiceOrder object
+    - Used when creating new orders
+    - Ensures all required fields have default values
+  </Accordion>
+
+  <Accordion title="TypeScript Integration">
+    Uses the `ServiceOrder` type from `types/ServiceOrder.ts`:
+    
+    ```typescript
+    import type { ServiceOrder } from '~/types/ServiceOrder'
+    ```
+    
+    Provides type safety and autocomplete for order data.
+  </Accordion>
+</AccordionGroup>
+
+### Usage in Pages
+
+```vue pages/serviceorders/index.vue
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import { useServiceOrders } from '@/composables/useServiceOrders'
+import type { ServiceOrder } from '~/types/ServiceOrder'
+
+const { serviceOrders, selectedOrder, openModal } = useServiceOrders()
+
+const flags = ref({
+    showServiceOrderModal: false,
+    showOrderDetailModal: false,
+    showSolutionModal: false
+})
+
+function editOrder(order: ServiceOrder) {
+    selectedOrder.value = { ...order }
+    flags.value.showServiceOrderModal = true
+}
+
+function OrderDetails(order: ServiceOrder) {
+    selectedOrder.value = { ...order }
+    flags.value.showOrderDetailModal = true
+}
+
+const api = useApi()
+const orders = ref<ApiResponse<ServiceOrder[]>>([])
+
+onMounted(async () => {
+   orders.value = await getServiceOrders()
+})
+
+const getServiceOrders = async (): Promise<ApiResponse<ServiceOrder[]>> => {
+    const response = await api.get('/service-orders')
+    return response
+}
+</script>
+```
+
+**How it works**:
+1. Destructures reactive state and functions from the composable
+2. Uses `selectedOrder` to track which order is being viewed/edited
+3. Calls `openModal()` to prepare orders for display
+4. Fetches real data from API and merges with composable state
+
+## Creating Custom Composables
+
+Follow this pattern to create your own composables:
+
+```typescript composables/useExample.ts
+import { ref, computed } from 'vue'
+
+export const useExample = () => {
+  // 1. Define reactive state
+  const data = ref([])
+  const loading = ref(false)
+  const error = ref(null)
+
+  // 2. Define computed properties
+  const hasData = computed(() => data.value.length > 0)
+
+  // 3. Define functions
+  async function fetchData() {
+    loading.value = true
+    try {
+      const api = useApi()
+      const response = await api.get('/endpoint')
+      data.value = response.data
+    } catch (err) {
+      error.value = err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // 4. Return everything you want to expose
+  return {
+    data,
+    loading,
+    error,
+    hasData,
+    fetchData
+  }
+}
+```
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Naming Convention" icon="tag">
+    Always prefix composables with `use` (e.g., `useApi`, `useServiceOrders`)
+  </Card>
+  <Card title="Single Responsibility" icon="bullseye">
+    Each composable should focus on one specific area of functionality
+  </Card>
+  <Card title="Return Object" icon="box">
+    Return an object with all state and functions you want to expose
+  </Card>
+  <Card title="Type Safety" icon="shield">
+    Use TypeScript types for better developer experience and fewer bugs
+  </Card>
+</CardGroup>
+
+## Composables vs Stores
+
+| Feature | Composables | Pinia Stores |
+|---------|-------------|-------------|
+| **State Sharing** | New instance per call | Singleton (shared state) |
+| **Best For** | Component-specific logic | Global application state |
+| **Reactivity** | Yes | Yes |
+| **Auto-import** | Yes (Nuxt) | Yes (with @pinia/nuxt) |
+| **Example** | `useApi()`, `useServiceOrders()` | `useAuthStore()` |
+
+<Note>
+**When to use which?**
+- Use **composables** for reusable logic that doesn't need to be shared globally
+- Use **stores** for state that multiple components need to access and modify
+</Note>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="API Integration" icon="plug" href="/development/api-integration">
+    Learn how to make API calls and handle responses
+  </Card>
+  <Card title="State Management" icon="database" href="/development/state-management">
+    Understand global state with Pinia stores
+  </Card>
+</CardGroup>

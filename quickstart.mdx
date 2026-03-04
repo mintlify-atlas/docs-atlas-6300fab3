@@ -1,80 +1,241 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: 'Quickstart'
+description: 'Get up and running with the Service Orders Management System in minutes'
 ---
 
-## Get started in three steps
+## Get Started in Minutes
 
-Get your documentation site running locally and make your first customization.
+This guide will walk you through setting up the Service Orders Management System from installation to creating your first service order.
 
-### Step 1: Set up your local environment
+<Steps>
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
+<Step title="Install Dependencies">
+  First, clone the repository and install all required dependencies.
+
+  <CodeGroup>
+
+  ```bash npm
+  npm install
+  ```
+
+  ```bash yarn
+  yarn install
+  ```
+
+  ```bash pnpm
+  pnpm install
+  ```
+
+  ```bash bun
+  bun install
+  ```
+
+  </CodeGroup>
+
+  The `postinstall` script will automatically run `nuxt prepare` to set up your development environment.
+
+  <Note>
+    Ensure you have Node.js 16.x or higher installed on your system.
+  </Note>
+</Step>
+
+<Step title="Configure API Endpoint">
+  The application connects to a backend API for authentication and data management. Configure the API base URL in `nuxt.config.ts`:
+
+  ```typescript nuxt.config.ts
+  export default defineNuxtConfig({
+    runtimeConfig: {
+      public: {
+        apiBaseUrl: 'http://localhost:8000/api/'
+      }
+    }
+  })
+  ```
+
+  <Tip>
+    You can override this setting using the `NUXT_PUBLIC_API_BASE_URL` environment variable without modifying the config file.
+  </Tip>
+
+  For production deployments, set the environment variable:
+
+  ```bash .env
+  NUXT_PUBLIC_API_BASE_URL=https://api.yourdomain.com/api/
+  ```
+</Step>
+
+<Step title="Start Development Server">
+  Launch the Nuxt development server with hot module replacement:
+
+  <CodeGroup>
+
+  ```bash npm
+  npm run dev
+  ```
+
+  ```bash yarn
+  yarn dev
+  ```
+
+  ```bash pnpm
+  pnpm dev
+  ```
+
+  ```bash bun
+  bun run dev
+  ```
+
+  </CodeGroup>
+
+  The application will be available at `http://localhost:3000`.
+
+  <Note>
+    The development server includes auto-import for components, composables, and Vue Router pages. No manual imports needed!
+  </Note>
+</Step>
+
+<Step title="Authenticate">
+  Navigate to `http://localhost:3000` to access the login page. The authentication system uses JWT tokens for session management.
+
+  **Login Flow:**
+
+  1. Enter your email and password
+  2. The system validates credentials with the backend API
+  3. Upon successful login, a JWT token is stored in `localStorage`
+  4. You're redirected to the service orders dashboard at `/serviceorders`
+
+  Here's how authentication works under the hood:
+
+  ```typescript pages/index.vue
+  const checkLogin = async () => {
+    validateForm()
     
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
+    if (!formFlag.value) {
+      return
+    }
     
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
+    await api.post('/login', form.value).then(
+      (response) => {
+        localStorage.setItem('access_token', response.data.access_token)
+        window.location.href = '/serviceorders'
+      }
+    ).catch(
+      (error) => {
+        if (error.response.data.message) {
+          alert(`Validacion Incorrecta: ${error.response.data.message}`)
+        } else {
+          alert(`Validacion Incorrecta`)
+        }
+        
+        form.value.email = ""
+        form.value.password = ""
+      }
+    )
+  }
+  ```
 
-### Step 2: Deploy your changes
+  <Warning>
+    The backend API must be running and accessible at the configured `apiBaseUrl` for authentication to work.
+  </Warning>
+</Step>
 
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
+<Step title="Create Your First Service Order">
+  Once authenticated, you can create and manage service orders:
+
+  1. Click the **Nuevo** (New) button on the service orders page
+  2. Fill in the service order details:
+     - Order number
+     - Service type (garantía, reparación, mantenimiento)
+     - Part number and serial number
+     - Description of the issue
+     - Company and contact information
+     - Equipment type
+     - Delivery conditions
+
+  3. Save the order to persist it to the backend
+
+  The system uses the `useServiceOrders` composable for state management:
+
+  ```typescript composables/useServiceOrders.ts
+  export const useServiceOrders = () => {
+    const serviceOrders = ref<ServiceOrder[]>([])
+    const selectedOrder = ref<ServiceOrder>(getEmptyOrder())
     
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+    function openModal(isNew: boolean, orderObject: any = null) {
+      selectedOrder.value = isNew ? getEmptyOrder() : orderObject
+    }
+    
+    return {
+      serviceOrders,
+      selectedOrder,
+      openModal
+    }
+  }
+  ```
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+  <Tip>
+    Service orders include comprehensive tracking for companies, contacts, equipment, and solutions - all managed from a single interface.
+  </Tip>
+</Step>
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+</Steps>
 
-### Step 3: Go live
+## What's Next?
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
-
-## Next steps
-
-Now that you have your docs running, explore these key features:
+Now that you have the Service Orders Management System running, explore these features:
 
 <CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
+  <Card title="Service Orders" icon="clipboard-list" href="/features/service-orders">
+    Learn how to create, edit, and track service orders
+  </Card>
+  <Card title="Companies & Contacts" icon="building" href="/features/companies-contacts">
+    Manage company information and contact details
+  </Card>
+  <Card title="Equipment Management" icon="laptop" href="/features/equipment-management">
+    Track equipment with part numbers and serial numbers
+  </Card>
+  <Card title="API Integration" icon="plug" href="/development/api-integration">
+    Understand how the frontend connects to the backend
+  </Card>
 </CardGroup>
 
-<Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
-</Note>
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="API connection errors">
+    If you're getting connection errors:
+    
+    1. Verify your backend API is running
+    2. Check the `apiBaseUrl` in `nuxt.config.ts` matches your backend URL
+    3. Ensure CORS is properly configured on your backend
+    4. Check browser console for detailed error messages
+  </Accordion>
+
+  <Accordion title="Login fails with correct credentials">
+    Common issues:
+    
+    - Backend API endpoint is incorrect
+    - Backend is not returning the expected response format (`{ access_token: "..." }`)
+    - Network connectivity issues between frontend and backend
+    - CORS blocking the request
+  </Accordion>
+
+  <Accordion title="Service orders not loading">
+    If service orders don't appear after login:
+    
+    1. Check that your JWT token is stored in `localStorage`
+    2. Verify the token is being sent in the `Authorization` header
+    3. Ensure the `/service-orders` endpoint is accessible
+    4. Check the browser console and network tab for errors
+  </Accordion>
+</AccordionGroup>
+
+## Additional Resources
+
+<CardGroup cols={2}>
+  <Card title="Project Structure" icon="folder-tree" href="/development/project-structure">
+    Understand the Nuxt 3 application architecture
+  </Card>
+  <Card title="State Management" icon="database" href="/development/state-management">
+    Learn about Pinia stores and composables
+  </Card>
+</CardGroup>

@@ -1,0 +1,308 @@
+---
+title: 'Service Orders Management'
+description: 'Comprehensive guide to creating, viewing, editing, and managing service orders in the system'
+icon: 'clipboard-list'
+---
+
+## Overview
+
+The Service Orders Management system is the core functionality that enables tracking and managing service requests from creation through completion. Each service order captures complete information about the customer, equipment, service requirements, and solution delivery.
+
+## Service Order Data Structure
+
+The `ServiceOrder` interface defines the complete structure of a service order:
+
+```typescript types/ServiceOrder.ts
+export interface ServiceOrder {
+    id: number,
+    number: number,
+    type: string,
+    part_number: string,
+    serial_number: string,
+    description: string,
+    solution: string,
+    company: Company,
+    delivery_conditions: DeliveryConditions
+    contacts: Contact[],
+    mails: Email[],
+    phones: Phone[],
+    addresses: Address[],
+    cities: City[]
+}
+```
+
+<Note>
+Each service order includes comprehensive information about the customer's company, contact details, equipment specifications, and service requirements all in one place.
+</Note>
+
+## Service Order Workflow
+
+The system follows a structured workflow from order creation to solution delivery:
+
+<Steps>
+  <Step title="Create Order">
+    Users create a new service order by providing company information, contact details, equipment specifications, and service description.
+  </Step>
+  
+  <Step title="View Details">
+    Review complete order information including customer details, equipment information, and service requirements.
+  </Step>
+  
+  <Step title="Add Solution">
+    Once service is completed, technicians document the solution and delivery recommendations.
+  </Step>
+  
+  <Step title="Deliver">
+    Record delivery conditions and complete the service order lifecycle.
+  </Step>
+</Steps>
+
+## Creating a Service Order
+
+The order creation form (`pages/serviceorders/order.vue`) captures all necessary information:
+
+### Company & Contact Information
+
+- **Company Selection**: Choose from existing companies or add new ones
+- **Headquarters/Location**: Specify the company location or branch
+- **Contact Person**: Select or create contact with identification details
+- **Contact Details**: Phone numbers, email addresses, and physical address
+
+```vue pages/serviceorders/order.vue
+<div class="mb-3 col-6">
+    <label for="company" class="font form-label fw-bold">Empresa:</label>
+    <div class="input-group">
+        <select id="company" class="form-select">
+            <option :value="company.id" v-for="company in companies">{{ company.company }}</option>
+        </select>
+        <button class="btn" style="background-color: #ec474f;">
+            <img src="../../public/plus-solid.svg" alt="" style="width: 20px; height: 20px;">
+        </button>
+    </div>
+</div>
+```
+
+### Service Information
+
+The form includes comprehensive service details:
+
+- **Service Type**: Warranty (garantía), Repair (reparación), or Maintenance (mantenimiento)
+- **Equipment Name**: Type of equipment being serviced
+- **Part Number**: Equipment part identification
+- **Serial Number**: Unique equipment serial number
+- **Description**: Detailed description of the equipment condition and service requirements
+- **Responsible Technician**: Assigned service technician
+
+```vue pages/serviceorders/order.vue
+<div class="col-9 mb-3">
+    <label for="floatingTextarea" class="font form-label fw-bold">Descripción:</label>
+    <textarea class="form-control"
+        placeholder="Ingrese aqui la descripción del estado en el que se recibe el equipo"
+        rows="5" id="floatingTextarea" v-model="selectedOrder.description"></textarea>
+</div>
+```
+
+<Tip>
+The description field should include the current condition of the equipment when received, any visible damage, and specific customer concerns.
+</Tip>
+
+## Managing Service Orders
+
+The main service orders list (`pages/serviceorders/index.vue`) provides a comprehensive view of all orders:
+
+### Order List Features
+
+<CardGroup cols={2}>
+  <Card title="Search & Filter" icon="magnifying-glass">
+    Filter orders by client name, date range, or order number to quickly find specific orders.
+  </Card>
+  
+  <Card title="Quick Actions" icon="gear">
+    Each order has dropdown actions for Edit, View Details, Add Solution, and Delete.
+  </Card>
+</CardGroup>
+
+### Order Actions
+
+The system provides four main actions for each service order:
+
+```vue pages/serviceorders/index.vue
+<ul class="dropdown-menu">
+    <li class="border-bottom">
+        <a class="dropdown-item" href="#" @click="editOrder(order)">
+            <img src="../../public/pencil-solid.svg" alt="" 
+                style="width: 16px; height: 16px; margin-right: 5px;">
+            Editar
+        </a>
+    </li>
+    <li class="border-bottom">
+        <a class="dropdown-item" href="#" @click="OrderDetails(order)">
+            <img src="../../public/circle-info-solid.svg" alt=""
+                style="width: 16px; height: 16px; margin-right: 5px;">
+            Detalles
+        </a>
+    </li>
+    <li class="border-bottom">
+        <a class="dropdown-item" href="#" @click="SolutionModal(order)">
+            <img src="../../public/tag-solid.svg" alt=""
+                style="width: 16px; height: 16px; margin-right: 5px;">
+            Solución
+        </a>
+    </li>
+</ul>
+```
+
+<Accordion title="How order actions work">
+Each action opens a dedicated modal:
+- **Editar**: Opens the order form with pre-filled data for modification
+- **Detalles**: Displays complete order information in read-only format
+- **Solución**: Allows adding solution details and delivery recommendations
+- **Eliminar**: Permanently removes the order from the system
+</Accordion>
+
+## Viewing Order Details
+
+The detail view (`pages/serviceorders/detail.vue`) organizes information into three main sections:
+
+### 1. General Information
+
+- Order Number
+- Company Name
+- Headquarters/Branch
+- Address and City
+- Phone and Email
+
+### 2. Contact Information
+
+- Contact Name and Last Name
+- Gender
+- Identification Number
+- Job Title/Charge
+
+### 3. Service Information
+
+- Service Type
+- Equipment Name
+- Part Number and Serial Number
+- Problem Description
+- Solution (once completed)
+- Delivery Conditions
+
+```vue pages/serviceorders/detail.vue
+<div class="card-body col-5 shadow shadow-lg m-2 p-3">
+    <a href="#" class="text-decoration-none text-dark fw-bold fs-4">
+        <img src="../../public/list-solid.svg" alt=""
+            style="width: 16px; height: 16px; margin-right: 5px;">
+        <span style="color: #666168;">Información Géneral</span>
+    </a>
+    <ul>
+        <li class="mb-2 mt-4"><strong style="color: #5d5d5d;">Número Orden: </strong>{{ order.number }}</li>
+        <li class="mb-2"><strong style="color: #5d5d5d;">Empresa: </strong>{{ order?.company?.name }}</li>
+        <li class="mb-2"><strong style="color: #5d5d5d;">Sede: </strong>{{ order?.company?.headquarters }}</li>
+        <li class="mb-2"><strong style="color: #5d5d5d;">Dirección: </strong>{{ order?.addresses?.address }}</li>
+    </ul>
+</div>
+```
+
+## Adding Solutions
+
+Once service is completed, technicians use the solution modal (`pages/serviceorders/solution.vue`) to document:
+
+- **Solution**: Detailed description of work performed and issues resolved
+- **Recommendations**: Maintenance recommendations and preventive measures for the customer
+
+```vue pages/serviceorders/solution.vue
+<div class="space-y-4">
+    <label for="solution" class="font form-label fw-bold">Solución:</label>
+    <textarea id="solution" class="w-100 form-control border p-2 rounded" rows="4"
+        placeholder="Describe la solución aquí..."></textarea>
+</div>
+<div class="space-y-4 mt-4">
+    <label for="recomendaciones" class="font form-label fw-bold">Recomendacines:</label>
+    <textarea id="recomendaciones" class="w-100 form-control border p-2 rounded" rows="4"
+        placeholder="Describe las recomendaciones aquí..."></textarea>
+</div>
+```
+
+<Note>
+Solutions and recommendations become part of the permanent service record and can be viewed in the order details.
+</Note>
+
+## API Integration
+
+The system fetches service orders from the backend API:
+
+```typescript pages/serviceorders/index.vue
+const getServiceOrders = async (): Promise<ApiResponse<ServiceOrder[]>> => {
+    const response = await api.get('/service-orders')
+    return response
+}
+
+onMounted(async ()=>{
+   orders.value = await getServiceOrders()
+})
+```
+
+<Tip>
+The API automatically includes the authentication token from localStorage in all requests via the `useApi` composable.
+</Tip>
+
+## Composable for Order Management
+
+The `useServiceOrders` composable provides reusable order management logic:
+
+```typescript composables/useServiceOrders.ts
+export const useServiceOrders = () => {
+  const serviceOrders = ref<ServiceOrder[]>([])
+  const selectedOrder = ref<ServiceOrder>(getEmptyOrder())
+
+  function openModal(isNew: boolean, orderObject: any = null) {
+    selectedOrder.value = isNew ? getEmptyOrder() : orderObject
+  }
+
+  function getEmptyOrder(): ServiceOrder {
+    return {
+      id: 0,
+      number: 0,
+      type: '',
+      part_number: '',
+      serial_number: '',
+      description: '',
+      solution: '',
+      company: { name: '', headquarters: '' },
+      contacts: { name: '', last_name: '', gender: '', active: true, identification: 0, charge: '', birthday: '' },
+      mails: { mail: '' },
+      phones: { phone: 0 },
+      addresses: { address: '' },
+      cities: { city: '' },
+      delivery_conditions: { description: '' }
+    }
+  }
+
+  return {
+    serviceOrders,
+    selectedOrder,
+    openModal
+  }
+}
+```
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Complete Documentation" icon="file-lines">
+    Always provide detailed descriptions of equipment condition and service requirements to ensure proper handling.
+  </Card>
+  
+  <Card title="Accurate Equipment Info" icon="microchip">
+    Verify part numbers and serial numbers carefully as they're critical for warranty and parts ordering.
+  </Card>
+  
+  <Card title="Timely Solutions" icon="clock">
+    Add solution details promptly after service completion while information is fresh.
+  </Card>
+  
+  <Card title="Customer Communication" icon="comments">
+    Use the recommendations field to provide valuable preventive maintenance advice to customers.
+  </Card>
+</CardGroup>

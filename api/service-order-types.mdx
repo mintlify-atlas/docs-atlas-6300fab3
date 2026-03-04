@@ -1,0 +1,281 @@
+---
+title: "Type Definitions"
+description: "TypeScript interfaces for service orders"
+---
+
+This page documents all TypeScript interfaces used in the Service Orders Management System.
+
+## ServiceOrder
+
+The main interface representing a service order.
+
+```typescript
+export interface ServiceOrder {
+    id: number,
+    number: number,
+    type: string,
+    part_number: string,
+    serial_number: string,
+    description: string,
+    solution: string,
+    company: Company,
+    delivery_conditions: DeliveryConditions
+    contacts: Contact[],
+    mails: Email[],
+    phones: Phone[],
+    addresses: Address[],
+    cities: City[],
+}
+```
+
+<ResponseField name="id" type="number" required>
+  Unique identifier for the service order
+</ResponseField>
+
+<ResponseField name="number" type="number" required>
+  Service order number displayed to users
+</ResponseField>
+
+<ResponseField name="type" type="string" required>
+  Type of service (e.g., "garantía", "reparación", "mantenimiento")
+</ResponseField>
+
+<ResponseField name="part_number" type="string" required>
+  Part number of the equipment being serviced
+</ResponseField>
+
+<ResponseField name="serial_number" type="string" required>
+  Serial number of the equipment
+</ResponseField>
+
+<ResponseField name="description" type="string" required>
+  Detailed description of the service issue or request
+</ResponseField>
+
+<ResponseField name="solution" type="string" required>
+  Solution or resolution details for the service order
+</ResponseField>
+
+<ResponseField name="company" type="Company" required>
+  The company associated with this service order
+</ResponseField>
+
+<ResponseField name="delivery_conditions" type="DeliveryConditions" required>
+  Conditions under which the equipment was delivered or returned
+</ResponseField>
+
+<ResponseField name="contacts" type="Contact[]" required>
+  Array of contact persons for this service order
+</ResponseField>
+
+<ResponseField name="mails" type="Email[]" required>
+  Array of email addresses associated with the service order
+</ResponseField>
+
+<ResponseField name="phones" type="Phone[]" required>
+  Array of phone numbers for contact
+</ResponseField>
+
+<ResponseField name="addresses" type="Address[]" required>
+  Array of physical addresses related to the service order
+</ResponseField>
+
+<ResponseField name="cities" type="City[]" required>
+  Array of cities associated with the service order
+</ResponseField>
+
+## Company
+
+Represents a company entity.
+
+```typescript
+export interface Company {
+    name: string,
+    headquarters: string
+}
+```
+
+<ResponseField name="name" type="string" required>
+  Company name
+</ResponseField>
+
+<ResponseField name="headquarters" type="string" required>
+  Location of company headquarters
+</ResponseField>
+
+## Contact
+
+Represents a contact person.
+
+```typescript
+export interface Contact {
+    name: string,
+    last_name: string,
+    gender: string,
+    active: boolean,
+    identification: number,
+    charge: string,
+    birthday: string
+}
+```
+
+<ResponseField name="name" type="string" required>
+  Contact's first name
+</ResponseField>
+
+<ResponseField name="last_name" type="string" required>
+  Contact's last name
+</ResponseField>
+
+<ResponseField name="gender" type="string" required>
+  Contact's gender (e.g., "Masculino", "Femenino")
+</ResponseField>
+
+<ResponseField name="active" type="boolean" required>
+  Whether the contact is currently active
+</ResponseField>
+
+<ResponseField name="identification" type="number" required>
+  Contact's identification number
+</ResponseField>
+
+<ResponseField name="charge" type="string" required>
+  Contact's job title or role (e.g., "admin", "técnico", "soporte")
+</ResponseField>
+
+<ResponseField name="birthday" type="string" required>
+  Contact's birthday in DD/MM/YYYY format
+</ResponseField>
+
+## Email
+
+Represents an email address.
+
+```typescript
+export interface Email {
+    mail: string
+}
+```
+
+<ResponseField name="mail" type="string" required>
+  Email address
+</ResponseField>
+
+## Phone
+
+Represents a phone number.
+
+```typescript
+export interface Phone {
+    phone: number
+}
+```
+
+<ResponseField name="phone" type="number" required>
+  Phone number (stored as a numeric value)
+</ResponseField>
+
+## Address
+
+Represents a physical address.
+
+```typescript
+export interface Address {
+    address: string
+}
+```
+
+<ResponseField name="address" type="string" required>
+  Street address
+</ResponseField>
+
+## City
+
+Represents a city.
+
+```typescript
+export interface City {
+    city: string
+}
+```
+
+<ResponseField name="city" type="string" required>
+  City name
+</ResponseField>
+
+## EquipmentType
+
+Represents equipment type information.
+
+```typescript
+export interface EquipmentType {
+    name: string
+}
+```
+
+<ResponseField name="name" type="string" required>
+  Name/brand of the equipment type (e.g., "Lenovo", "HP", "Dell")
+</ResponseField>
+
+<Note>
+  This interface is defined in the type file but currently commented out in the ServiceOrder interface.
+</Note>
+
+## DeliveryConditions
+
+Represents delivery or equipment condition information.
+
+```typescript
+export interface DeliveryConditions {
+    description: string
+}
+```
+
+<ResponseField name="description" type="string" required>
+  Description of delivery conditions (e.g., "con funda protectora", "sin cargador")
+</ResponseField>
+
+## Usage Example
+
+<CodeGroup>
+
+```typescript Import Types
+import type { ServiceOrder, Contact, Company } from '~/types/ServiceOrder'
+```
+
+```typescript Create Empty Order
+function getEmptyOrder(): ServiceOrder {
+  return {
+    id: 0,
+    number: 0,
+    type: '',
+    part_number: '',
+    serial_number: '',
+    description: '',
+    solution: '',
+    company: { name: '', headquarters: '' },
+    contacts: { name: '', last_name: '', gender: '', active: true, identification: 0, charge: '', birthday: '' },
+    mails: { mail: '' },
+    phones: { phone: 0 },
+    addresses: { address: '' },
+    cities: { city: '' },
+    equipment_types: { name: '' },
+    delivery_conditions: { description: '' }
+  }
+}
+```
+
+```typescript Type Service Order
+const orders = ref<ServiceOrder[]>([])
+const selectedOrder = ref<ServiceOrder>(getEmptyOrder())
+
+function editOrder(order: ServiceOrder) {
+  selectedOrder.value = { ...order }
+}
+```
+
+</CodeGroup>
+
+<Warning>
+  Note that in the composable implementation, some fields like `contacts`, `mails`, `phones`, etc. are initialized as single objects rather than arrays, despite the type definition specifying arrays. This inconsistency should be addressed for proper type safety.
+</Warning>

@@ -1,97 +1,181 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: "Service Orders Management System"
+mode: "custom"
 ---
 
-## Setting up
+<div className="relative overflow-hidden dark:bg-[#0a0e1a] bg-white py-20">
+  <div className="absolute inset-0 bg-gradient-to-br from-[#64748c]/10 via-transparent to-[#04db83]/10"></div>
+  <div className="relative max-w-6xl mx-auto px-6 lg:px-8">
+    <div className="grid lg:grid-cols-12 gap-12 items-center">
+      <div className="lg:col-span-7">
+        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold dark:text-white text-gray-900 mb-6">
+          Service Orders Management System
+        </h1>
+        <p className="text-lg sm:text-xl dark:text-gray-400 text-gray-600 max-w-2xl mb-8">
+          A comprehensive SaaS application for managing service orders, companies, contacts, and equipment tracking with authentication and real-time updates.
+        </p>
+        <div className="flex flex-wrap gap-4">
+          <a
+            href="/quickstart"
+            className="inline-flex items-center px-6 py-3 rounded-lg bg-[#64748c] text-white font-semibold hover:bg-[#64748c]/90 transition-colors"
+          >
+            Get Started
+            <svg className="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+            </svg>
+          </a>
+          <a
+            href="/api/use-api"
+            className="inline-flex items-center px-6 py-3 rounded-lg border dark:border-white/30 border-gray-300 dark:bg-white/10 bg-gray-50 dark:text-white text-gray-900 font-semibold dark:hover:border-[#64748c] hover:border-[#64748c] transition-colors"
+          >
+            API Reference
+          </a>
+        </div>
+      </div>
+      <div className="lg:col-span-5 hidden lg:block">
+        <div className="relative">
+          <div className="absolute inset-0 bg-gradient-to-r from-[#64748c] to-[#04db83] rounded-2xl blur-3xl opacity-20"></div>
+          <div className="relative dark:bg-[#141d2c] bg-gray-100 rounded-2xl p-8 dark:border dark:border-[#283246] border-gray-200 shadow-xl">
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-3 h-3 rounded-full bg-[#04db83]"></div>
+                <div className="h-4 dark:bg-[#1a1d27] bg-gray-200 rounded flex-1"></div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-3 h-3 rounded-full bg-[#66e3b1]"></div>
+                <div className="h-4 dark:bg-[#1a1d27] bg-gray-200 rounded flex-1 max-w-xs"></div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-3 h-3 rounded-full bg-[#64748c]"></div>
+                <div className="h-4 dark:bg-[#1a1d27] bg-gray-200 rounded flex-1 max-w-sm"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
-Get your documentation site up and running in minutes.
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <h2 className="text-2xl sm:text-3xl font-semibold dark:text-white text-gray-900 mb-4">Quick Start</h2>
+  <p className="text-base dark:text-gray-400 text-gray-600 mb-8">Get up and running with the Service Orders Management System in just a few steps.</p>
 
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
+  <Steps>
+    <Step title="Install Dependencies">
+      Clone the repository and install the required dependencies using your preferred package manager.
 
-## Make it yours
+      <CodeGroup>
+      ```bash npm
+      npm install
+      ```
+      ```bash yarn
+      yarn install
+      ```
+      ```bash pnpm
+      pnpm install
+      ```
+      </CodeGroup>
+    </Step>
 
-Design a docs site that looks great and empowers your users.
+    <Step title="Configure Environment">
+      Set up your API base URL in the Nuxt configuration. The system connects to a backend API for authentication and data management.
 
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
-  </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
-  </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
-  </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
-  </Card>
-</Columns>
+      ```typescript nuxt.config.ts
+      export default defineNuxtConfig({
+        runtimeConfig: {
+          public: {
+            apiBaseUrl: 'http://localhost:8000/api/'
+          }
+        }
+      })
+      ```
 
-## Create beautiful pages
+      <Note>
+        Update the `apiBaseUrl` to point to your backend API endpoint.
+      </Note>
+    </Step>
 
-Everything you need to create world-class documentation.
+    <Step title="Start Development Server">
+      Launch the development server to start building and testing your application.
 
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
+      ```bash
+      npm run dev
+      ```
 
-## Need inspiration?
+      The application will be available at `http://localhost:3000`.
+    </Step>
 
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+    <Step title="Authenticate">
+      Access the login page and authenticate with your credentials to start managing service orders.
+
+      <Tip>
+        The authentication system uses JWT tokens stored in localStorage for session management.
+      </Tip>
+    </Step>
+  </Steps>
+</div>
+
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <h2 className="text-2xl sm:text-3xl font-semibold dark:text-white text-gray-900 mb-4">Core Features</h2>
+  <p className="text-base dark:text-gray-400 text-gray-600 mb-8">Everything you need to manage service orders efficiently.</p>
+
+  <CardGroup cols={2}>
+    <Card title="Service Orders" icon="clipboard-list" href="/features/service-orders">
+      Create, edit, view, and track service orders with comprehensive details including equipment types, serial numbers, and solutions.
+    </Card>
+    <Card title="Companies & Contacts" icon="building" href="/features/companies-contacts">
+      Manage company information, contacts, addresses, phones, and email communications in one centralized system.
+    </Card>
+    <Card title="Equipment Management" icon="laptop" href="/features/equipment-management">
+      Track equipment with part numbers, serial numbers, and equipment types for accurate service history.
+    </Card>
+    <Card title="Authentication" icon="lock" href="/features/authentication">
+      Secure user authentication and authorization with JWT tokens and protected routes.
+    </Card>
+  </CardGroup>
+</div>
+
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <h2 className="text-2xl sm:text-3xl font-semibold dark:text-white text-gray-900 mb-4">Development Resources</h2>
+  <p className="text-base dark:text-gray-400 text-gray-600 mb-8">Learn how to customize and extend the application.</p>
+
+  <CardGroup cols={3}>
+    <Card title="Project Structure" icon="folder-tree" href="/development/project-structure">
+      Understand the Nuxt 3 application architecture and organization.
+    </Card>
+    <Card title="State Management" icon="database" href="/development/state-management">
+      Learn how Pinia stores manage application state.
+    </Card>
+    <Card title="Composables" icon="puzzle-piece" href="/development/composables">
+      Explore reusable composition functions for API and data management.
+    </Card>
+    <Card title="API Integration" icon="plug" href="/development/api-integration">
+      Connect to backend services with Axios and authentication.
+    </Card>
+    <Card title="Building" icon="hammer" href="/deployment/building">
+      Build and optimize for production deployment.
+    </Card>
+    <Card title="Environment Config" icon="gear" href="/deployment/environment-config">
+      Configure environment variables and runtime settings.
+    </Card>
+  </CardGroup>
+</div>
+
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <div className="dark:bg-[#141d2c] bg-gray-50 rounded-2xl p-8 dark:border dark:border-[#283246] border-gray-200">
+    <h2 className="text-2xl font-semibold dark:text-white text-gray-900 mb-4">Ready to get started?</h2>
+    <p className="text-base dark:text-gray-400 text-gray-600 mb-6">
+      Follow our quickstart guide to set up your development environment and build your first service order application.
+    </p>
+    <a
+      href="/quickstart"
+      className="inline-flex items-center px-6 py-3 rounded-lg bg-[#64748c] text-white font-semibold hover:bg-[#64748c]/90 transition-colors"
+    >
+      Get Started Now
+      <svg className="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+      </svg>
+    </a>
+  </div>
+</div>
