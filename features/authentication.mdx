@@ -369,7 +369,26 @@ This ensures that users with valid tokens in localStorage remain authenticated a
 
 ## Logout Implementation
 
-To implement logout functionality, use the auth store's logout action:
+The application implements logout functionality in the default layout header:
+
+```typescript layouts/default.vue
+const api = useApi()
+
+const logout = async () => {
+  await api.post('/logout')
+  localStorage.removeItem('access_token')
+  window.location.href = '/'
+}
+```
+
+**Logout process:**
+1. Calls the `/logout` API endpoint to invalidate the session on the server
+2. Removes the JWT token from `localStorage`  
+3. Redirects the user to the login page
+
+The logout button is accessible from the user dropdown menu in the application header.
+
+You can also use the auth store's logout action for programmatic logout:
 
 ```typescript
 import { useAuthStore } from '~/stores/auth'

@@ -25,8 +25,13 @@ export interface ServiceOrder {
     phones: Phone[],
     addresses: Address[],
     cities: City[],
+    // equipment_types: EquipmentType[]
 }
 ```
+
+<Note>
+The `equipment_types` field is commented out in the type definition but is used throughout the codebase. This represents a type inconsistency in the source code.
+</Note>
 
 <ResponseField name="id" type="number" required>
   Unique identifier for the service order
@@ -83,6 +88,10 @@ export interface ServiceOrder {
 <ResponseField name="cities" type="City[]" required>
   Array of cities associated with the service order
 </ResponseField>
+
+<Note>
+The `equipment_types` field is defined in the EquipmentType interface but is commented out in the ServiceOrder type definition. However, it's used throughout the codebase implementation.
+</Note>
 
 ## Company
 

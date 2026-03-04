@@ -1,0 +1,323 @@
+---
+title: 'User Profile Management'
+description: 'View and edit user profile information including name and profile image'
+icon: 'user'
+---
+
+## Overview
+
+The Service Orders Management System includes user profile management accessible from the application header. Users can view their profile information and update their profile image.
+
+## Accessing the Profile
+
+The user profile is accessible via the dropdown menu in the application header:
+
+```vue layouts/default.vue
+<div class="btn-group dropstart">
+    <button type="button" class="btn dropdown-toggle" style="width: auto;" data-bs-toggle="dropdown"
+        aria-expanded="false">
+        <img src="../public/user-regular.svg" alt="" style="width: 32px; height: 32px; margin-right: 5px;">
+    </button>
+    <ul class="dropdown-menu">
+        <li class="border-bottom">
+            <NuxtLink class="dropdown-item" to="/serviceorders/perfil">
+                <img src="../public/user-solid.svg" alt=""
+                    style="width: 16px; height: 16px; margin-right: 5px;">
+                Ver Perfil
+            </NuxtLink>
+        </li>
+        <li>
+            <a class="dropdown-item" href="#" @click="logout()">
+                <img src="../public/right-from-bracket-solid.svg" alt=""
+                    style="width: 16px; height: 16px; margin-right: 5px;">
+                Cerrar Sesión
+            </a>
+        </li>
+    </ul>
+</div>
+```
+
+The profile link navigates to `/serviceorders/perfil`.
+
+## Profile Page
+
+The profile page displays user information and provides editing capabilities:
+
+```vue pages/serviceorders/perfil.vue
+<div class="shadow m-5 p-3 position-relative">
+    <div class="row">
+        <div class="col-3">
+            <div class="text-center" style="width: 150px; height: 150px; border-radius: 50%; overflow: hidden;">
+                <img :src="profileImage" alt="Image perfil" class="w-100 h-100 " style="object-fit: cover;">
+            </div>
+        </div>
+        <div class="col-7">
+            <div>
+                <h3>Nombre de usuario</h3>
+                <h5>Rol de usuario</h5>
+                <h4>Email de usuario</h4>
+            </div>
+        </div>
+        <div class="col-2 align-content-start">
+            <a class="btn fs-5 border border-success bg-light position-absolute top-0 end-0 m-3"
+                @click="editPerfil">
+                <img src="../../public/pencil-solid.svg" alt=""
+                    style="width: 20px; height: 20px; margin-right: 5px;">Editar
+            </a>
+        </div>
+    </div>
+</div>
+```
+
+### Profile Features
+
+<CardGroup cols={2}>
+  <Card title="Profile Image" icon="image">
+    Circular profile image display with customizable photo
+  </Card>
+  
+  <Card title="User Information" icon="id-card">
+    Display of username, role, and email address
+  </Card>
+  
+  <Card title="Edit Profile" icon="pen-to-square">
+    Button to open edit modal for updating profile information
+  </Card>
+  
+  <Card title="Responsive Layout" icon="mobile">
+    Grid-based layout adapts to different screen sizes
+  </Card>
+</CardGroup>
+
+## Profile Image Management
+
+The profile page manages the user's profile image:
+
+```typescript pages/serviceorders/perfil.vue
+const defaultImage = '/perfil.avif'
+const profileImage = ref(defaultImage)
+
+function updateProfileImage(imageUrl: string) {
+    profileImage.value = imageUrl
+}
+```
+
+**Image features:**
+- Default image fallback (`/perfil.avif`)
+- Circular display with 150px dimensions
+- Cropped to fit using `object-fit: cover`
+- Updates dynamically when user changes image
+
+## Edit Profile Modal
+
+Clicking the "Editar" button opens the edit profile modal:
+
+```typescript pages/serviceorders/perfil.vue
+const flags = ref({
+    showEditPerfilModal: false
+})
+
+function editPerfil(order: ServiceOrder) {
+    selectedOrder.value = { ...order }
+    flags.value.showEditPerfilModal = true
+}
+```
+
+The modal is rendered conditionally:
+
+```vue
+<EditPerfil :order="selectedOrder" v-if="flags.showEditPerfilModal"
+    @exit="flags.showEditPerfilModal = false; openModal(true)" 
+    @image-updated="updateProfileImage" />
+```
+
+## Edit Profile Form
+
+The edit profile modal (`pages/serviceorders/editPerfil.vue`) allows users to update their information:
+
+```vue pages/serviceorders/editPerfil.vue
+<Modal @close="$emit('exit')" :closeModalGlobal='closeModal' btnCancelText="Salir">
+    <template v-slot:header>
+        Editar perfil de usuario:
+    </template>
+
+    <template v-slot:body>
+        <div class="row">
+            <div class="col-12">
+                <label for="nameUser" class="font form-label fw-bold">Nombre:</label>
+                <input class="form-control" type="text" id="nameUser">
+            </div>
+            <div class="col-12 mt-3">
+                <label for="photo" class="font form-label fw-bold">Imagen de perfil:</label>
+                <input class="form-control" type="file" id="photo" accept=".png, .jpg, .jpeg, .svg" @change="fileChange">
+            </div>
+        </div>
+    </template>
+
+    <template v-slot:footer>
+        <button type="button" class="btn btn-success">Actualizar</button>
+    </template>
+</Modal>
+```
+
+### Form Fields
+
+<ResponseField name="nameUser" type="text">
+  User's display name
+</ResponseField>
+
+<ResponseField name="photo" type="file">
+  Profile image upload. Accepts PNG, JPG, JPEG, and SVG formats
+</ResponseField>
+
+## Image Upload Handling
+
+The edit profile form handles image uploads using the FileReader API:
+
+```typescript pages/serviceorders/editPerfil.vue
+function fileChange(event: Event) {
+    const target = event.target as HTMLInputElement
+    const file = target.files?.[0]
+
+    if (file) {
+        const reader = new FileReader()
+        reader.onload = (e) => {
+            emit('image-updated', e.target?.result as string)
+        }
+        reader.readAsDataURL(file)
+    }
+}
+```
+
+**Upload process:**
+1. User selects an image file from their device
+2. FileReader converts the file to a base64 data URL
+3. `image-updated` event is emitted with the data URL
+4. Parent component updates the profile image display
+
+<Steps>
+  <Step title="Select Image">
+    User clicks the file input and selects an image from their device
+  </Step>
+  
+  <Step title="File Validation">
+    Browser ensures file matches accepted formats (.png, .jpg, .jpeg, .svg)
+  </Step>
+  
+  <Step title="Read File">
+    FileReader API reads the file and converts it to base64 data URL
+  </Step>
+  
+  <Step title="Emit Event">
+    The data URL is emitted to the parent component via the `image-updated` event
+  </Step>
+  
+  <Step title="Update Display">
+    Parent component receives the event and updates the profileImage ref
+  </Step>
+</Steps>
+
+## Modal Component Integration
+
+Both the profile and edit profile pages use the reusable Modal component:
+
+```typescript
+const Modal = defineAsyncComponent<typeof import('~/components/Modal.vue')['default']>(
+    () => import('~/components/Modal.vue')
+)
+
+const closeModal = ref(false)
+```
+
+The Modal component is lazy-loaded using Vue's `defineAsyncComponent` for better performance.
+
+## Event Handling
+
+The edit profile modal communicates with the parent via events:
+
+```typescript
+const emit = defineEmits(['exit', 'image-updated'])
+```
+
+**Events:**
+- `exit` - Fired when user closes the modal
+- `image-updated` - Fired when user uploads a new profile image, passing the image data URL
+
+## Accessing User Profile
+
+To navigate to the user profile programmatically:
+
+```typescript
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+
+function goToProfile() {
+  router.push('/serviceorders/perfil')
+}
+```
+
+Or use NuxtLink for declarative navigation:
+
+```vue
+<NuxtLink to="/serviceorders/perfil">
+  View Profile
+</NuxtLink>
+```
+
+## Profile Integration with Auth
+
+The profile page uses the serviceOrders composable for state management:
+
+```typescript pages/serviceorders/perfil.vue
+import { useServiceOrders } from '@/composables/useServiceOrders'
+
+const { serviceOrders, selectedOrder, openModal } = useServiceOrders()
+```
+
+<Note>
+The current implementation reuses the ServiceOrder type for profile data. In a production application, you'd want a dedicated User type for profile information.
+</Note>
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Image Optimization" icon="image">
+    Compress and resize images before upload to reduce bandwidth and storage
+  </Card>
+  
+  <Card title="File Validation" icon="shield-check">
+    Validate file type and size on both client and server
+  </Card>
+  
+  <Card title="Error Handling" icon="triangle-exclamation">
+    Provide clear feedback for failed uploads or invalid files
+  </Card>
+  
+  <Card title="Loading States" icon="spinner">
+    Show loading indicators during image upload and processing
+  </Card>
+</CardGroup>
+
+## Future Enhancements
+
+Potential improvements for the profile system:
+
+- **Email Verification**: Require email confirmation for changes
+- **Password Management**: Allow users to change their password
+- **Two-Factor Authentication**: Add 2FA setup in profile settings
+- **Activity Log**: Show recent login history and account activity
+- **Privacy Settings**: Control visibility and data sharing preferences
+- **Avatar Generator**: Provide default avatars if no image is uploaded
+- **Image Cropping**: Allow users to crop and adjust their profile image
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="lock" href="/features/authentication">
+    Learn about the authentication system
+  </Card>
+  <Card title="Modal Component" icon="window" href="/development/project-structure">
+    Explore the reusable Modal component structure
+  </Card>
+</CardGroup>

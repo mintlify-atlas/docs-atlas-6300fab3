@@ -42,7 +42,8 @@
               "features/service-orders",
               "features/companies-contacts",
               "features/equipment-management",
-              "features/authentication"
+              "features/authentication",
+              "features/user-profile"
             ]
           },
           {
